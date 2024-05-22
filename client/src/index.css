@@ -7,3 +7,12 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+img[alt] {
+  color: transparent;
+  font-size: 0;
+  text-indent: -9999px;
+  /* Additional styling to make sure it's not visible */
+  overflow: hidden;
+  position: relative;
+}
