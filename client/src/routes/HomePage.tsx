@@ -25,7 +25,10 @@ function HomePage() {
         >
           Login
         </Button>
-        <Button className="dark bg-[#633CFF] rounded-md font-medium">
+        <Button
+          className="dark bg-[#633CFF] rounded-md font-medium"
+          onClick={() => navigate("/signup")}
+        >
           Sign Up
         </Button>
       </div>
