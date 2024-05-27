@@ -32,6 +32,19 @@ function HomePage() {
           Sign Up
         </Button>
       </div>
+      <div className="absolute w-screen h-fit py-5 px-4 bottom-0 border-t border-divider flex justify-center items-center gap-3">
+        <p className="text-[#737373]">
+          By{" "}
+          <a
+            className="hover:underline hover:cursor-pointer"
+            href="https://www.abdellahbellakrim.tech"
+            target="_blank"
+          >
+            Abdellah Bellakrim
+          </a>{" "}
+          | No copyright ©
+        </p>
+      </div>
     </div>
   );
 }
