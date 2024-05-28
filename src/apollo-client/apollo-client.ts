@@ -1,16 +1,25 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
+import {
+  ApolloClient,
+  InMemoryCache,
+  createHttpLink,
+  makeVar,
+} from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
+import { userType } from "./types";
+
+// Load environment variables
+const HASURA_GRAPHQL_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
+const HASURA_ADMIN_SECRET = import.meta.env.VITE_HASURA_ADMIN_SECRET;
 
 const httpLink = createHttpLink({
-  uri: "https://funny-pangolin-55.hasura.app/v1/graphql", // Replace with your Hasura endpoint
+  uri: HASURA_GRAPHQL_ENDPOINT, // Use environment variable
 });
 
 const authLink = setContext((_, { headers }) => {
   return {
     headers: {
       ...headers,
-      "x-hasura-admin-secret":
-        "5Hm3747AHaFDCeN1JnQRFYYhvPHce0mmTDB9giwEG0Holbnh7YmbYJNr4FnNkpZL", // Replace with your Hasura admin secret
+      "x-hasura-admin-secret": HASURA_ADMIN_SECRET, // Use environment variable
     },
   };
 });
@@ -19,5 +28,7 @@ const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 });
+
+export const userState = makeVar<userType | null>(null);
 
 export default client;
