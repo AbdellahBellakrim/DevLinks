@@ -31,7 +31,7 @@ function DashboardLayout() {
   const User = useReactiveVar(userState);
 
   useEffect(() => {
-    console.log(User);
+    console.log(User?.links);
   }, [User]);
 
   if (loading || !User) return <p>Loading...</p>;
