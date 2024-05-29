@@ -38,93 +38,95 @@ function LinksPage() {
         + Add new Link
       </div>
       {linksNumber > 0 && (
-        <div className="mb-6 border-b border-divider flex-grow max-h-[481px] overflow-y-auto no-scrollbar p-1">
-          {/* each link div */}
-          {UpdatedLinks.map((link, index: number) => (
-            <div className="mb-6  h-[228px] w-full" key={link.id}>
-              <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
-                {/* card header */}
-                <div className="w-full flex items-center justify-between mb-3">
-                  <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
-                    <div className="w-fit h-fit bg-white bg-opacity-5">
-                      <img
-                        className="bg-white bg-opacity-5 z-0"
-                        src="icon-drag-and-drop.svg"
-                        alt="icon-drag-and-drop.svg"
-                        loading="lazy"
-                        width={12}
-                        height={6}
-                      />
-                    </div>
-                    <p className="text-[#737373] font-semibold text-lg">{`Link #${link.id}`}</p>
-                  </div>
-                  <p
-                    className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
-                    onClick={() => removeLinkFromUpdatedLinks(index)}
-                  >
-                    Remove
-                  </p>
-                </div>
-                {/* form */}
-                <div className="flex-grow">
-                  <Select
-                    label="Platform"
-                    placeholder={link.platform}
-                    labelPlacement="outside"
-                    classNames={{
-                      value: "opacity-75",
-                      label: "opacity-85 font-normal",
-                      mainWrapper: "mb-6",
-                      trigger:
-                        "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
-                      popoverContent: "rounded-md mt-2",
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: [
-                          "rounded-md",
-                          "text-default-500",
-                          "transition-opacity",
-                          "data-[hover=true]:bg-default-100",
-                          "data-[selectable=true]:focus:bg-default-50",
-                          "data-[selectable=true]:focus:text-[#633CFF]",
-                          "data-[pressed=true]:opacity-70",
-                          "data-[focus-visible=true]:ring-default-500",
-                        ],
-                      },
-                    }}
-                  >
-                    {platforms.map((platform, index) => (
-                      <SelectItem
-                        key={index}
-                        className="border-b border-divider rounded-none text-[#737373]"
-                      >
-                        {platform}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <Input
-                    radius="sm"
-                    label="Link"
-                    labelPlacement={"outside"}
-                    type="text"
-                    placeholder={link.link}
-                    startContent={
-                      <div>
-                        <img src="/icon-links-header.svg" alt="link img" />
+        <div className="mb-6 flex-grow border-b border-divider">
+          <div className="h-[485px] overflow-y-auto no-scrollbar">
+            {/* each link div */}
+            {UpdatedLinks.map((link, index: number) => (
+              <div className="mb-6  h-[228px] w-full" key={link.id}>
+                <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
+                  {/* card header */}
+                  <div className="w-full flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
+                      <div className="w-fit h-fit bg-white bg-opacity-5">
+                        <img
+                          className="bg-white bg-opacity-5 z-0"
+                          src="icon-drag-and-drop.svg"
+                          alt="icon-drag-and-drop.svg"
+                          loading="lazy"
+                          width={12}
+                          height={6}
+                        />
                       </div>
-                    }
-                    classNames={{
-                      inputWrapper:
-                        "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
-                      label: "opacity-85 font-normal",
-                      input: "opacity-75",
-                    }}
-                  />
+                      <p className="text-[#737373] font-semibold text-lg">{`Link #${link.id}`}</p>
+                    </div>
+                    <p
+                      className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
+                      onClick={() => removeLinkFromUpdatedLinks(index)}
+                    >
+                      Remove
+                    </p>
+                  </div>
+                  {/* form */}
+                  <div className="flex-grow">
+                    <Select
+                      label="Platform"
+                      placeholder={link.platform}
+                      labelPlacement="outside"
+                      classNames={{
+                        value: "opacity-75",
+                        label: "opacity-85 font-normal",
+                        mainWrapper: "mb-6",
+                        trigger:
+                          "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+                        popoverContent: "rounded-md mt-2",
+                      }}
+                      listboxProps={{
+                        itemClasses: {
+                          base: [
+                            "rounded-md",
+                            "text-default-500",
+                            "transition-opacity",
+                            "data-[hover=true]:bg-default-100",
+                            "data-[selectable=true]:focus:bg-default-50",
+                            "data-[selectable=true]:focus:text-[#633CFF]",
+                            "data-[pressed=true]:opacity-70",
+                            "data-[focus-visible=true]:ring-default-500",
+                          ],
+                        },
+                      }}
+                    >
+                      {platforms.map((platform, index) => (
+                        <SelectItem
+                          key={index}
+                          className="border-b border-divider rounded-none text-[#737373]"
+                        >
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </Select>
+                    <Input
+                      radius="sm"
+                      label="Link"
+                      labelPlacement={"outside"}
+                      type="text"
+                      placeholder={link.link}
+                      startContent={
+                        <div>
+                          <img src="/icon-links-header.svg" alt="link img" />
+                        </div>
+                      }
+                      classNames={{
+                        inputWrapper:
+                          "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+                        label: "opacity-85 font-normal",
+                        input: "opacity-75",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
