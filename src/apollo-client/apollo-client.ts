@@ -30,5 +30,21 @@ const client = new ApolloClient({
 });
 
 export const userState = makeVar<userType | null>(null);
+export const platforms: string[] = [
+  "Github",
+  "Frontend Mentor",
+  "Twitter",
+  "Linkedin",
+  "Youtube",
+  "Facebook",
+  "Twitch",
+  "Dev.to",
+  "Codewars",
+  "Codepen",
+  "freeCodeCamp",
+  "Gitlab",
+  "Hashnode",
+  "Stack Overflow",
+];
 
 export default client;

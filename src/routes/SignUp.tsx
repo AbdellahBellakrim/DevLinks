@@ -41,6 +41,7 @@ function SignUp() {
               </div>
             }
             classNames={{
+              input: "opacity-75",
               inputWrapper:
                 "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
@@ -59,6 +60,7 @@ function SignUp() {
               </div>
             }
             classNames={{
+              input: "opacity-75",
               inputWrapper:
                 "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
@@ -77,6 +79,7 @@ function SignUp() {
               </div>
             }
             classNames={{
+              input: "opacity-75",
               inputWrapper:
                 "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
