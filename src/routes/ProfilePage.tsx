@@ -1,10 +1,22 @@
 import { useReactiveVar } from "@apollo/client";
-import { Button } from "@nextui-org/react";
+import { Button, Input } from "@nextui-org/react";
 import { userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
 
 function ProfilePage() {
   const [updatedUser, setUpdatedUser] = useState<any>({});
+  const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
+    window.innerWidth < 640
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [window.innerWidth]);
 
   // get user data from userState
   const User = useReactiveVar(userState);
@@ -13,8 +25,6 @@ function ProfilePage() {
     if (User) {
       setUpdatedUser({
         ...User,
-        profile_picture:
-          "https://i.pinimg.com/736x/2b/a2/45/2ba2455ca817f7659e9ebfe9d494c5db.jpg",
       });
     }
   }, [User]);
@@ -79,7 +89,59 @@ function ProfilePage() {
           </p>
         </div>
         {/* second container (form) */}
-        <div className="min-h-[208px] rounded-xl bg-black bg-opacity-5 p-5"></div>
+        <div className="min-h-[208px] rounded-xl bg-black bg-opacity-5 p-5 flex flex-col gap-5">
+          <Input
+            radius="sm"
+            label="First name"
+            labelPlacement={isSmallScreen ? "outside" : "outside-left"}
+            type="text"
+            placeholder="e.g. John"
+            isRequired
+            classNames={{
+              base: "text-[#737373]",
+              label:
+                "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
+              mainWrapper: "w-full sm:w-[60%]",
+              input: "opacity-75",
+              inputWrapper:
+                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+            }}
+          />
+          <Input
+            radius="sm"
+            label="Last name"
+            labelPlacement={isSmallScreen ? "outside" : "outside-left"}
+            type="text"
+            placeholder="Wright"
+            isRequired
+            classNames={{
+              base: "text-[#737373]",
+              label:
+                "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
+              mainWrapper: "w-full sm:w-[60%]",
+              input: "opacity-75",
+              inputWrapper:
+                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+            }}
+          />
+          <Input
+            radius="sm"
+            label="Email"
+            labelPlacement={isSmallScreen ? "outside" : "outside-left"}
+            type="email"
+            placeholder="ben@example.com"
+            isRequired
+            classNames={{
+              base: "text-[#737373]",
+              label:
+                "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
+              mainWrapper: "w-full sm:w-[60%]",
+              input: "opacity-75",
+              inputWrapper:
+                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+            }}
+          />
+        </div>
       </div>
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
