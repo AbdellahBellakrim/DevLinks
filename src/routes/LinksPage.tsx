@@ -39,7 +39,7 @@ function LinksPage() {
       </div>
       {linksNumber > 0 && (
         <div className="mb-6 flex-grow border-b border-divider">
-          <div className="h-[485px] overflow-y-auto no-scrollbar">
+          <div className="h-[480px] overflow-y-auto no-scrollbar">
             {/* each link div */}
             {UpdatedLinks.map((link, index: number) => (
               <div className="mb-6  h-[228px] w-full" key={link.id}>
@@ -156,7 +156,7 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          className={`rounded-md bg-[#633CFF] text-white ${
+          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto ${
             linksNumber === 0 ? "opacity-40" : "opacity-100"
           }`}
           disabled={linksNumber === 0 ? true : false}
