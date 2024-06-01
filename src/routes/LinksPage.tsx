@@ -7,7 +7,6 @@ import { LinkType } from "../apollo-client/types";
 
 function LinksPage() {
   const User = useReactiveVar(userState);
-  const [linksNumber, setLinksNumber] = useState<number>(0);
   const [UpdatedLinks, setUpdatedLinks] = useState<LinkType[]>([]);
 
   useEffect(() => {
@@ -15,10 +14,6 @@ function LinksPage() {
       setUpdatedLinks(User.links);
     }
   }, [User]);
-
-  useEffect(() => {
-    setLinksNumber(UpdatedLinks.length);
-  }, [UpdatedLinks]);
 
   const removeLinkFromUpdatedLinks = (index: number) => {
     setUpdatedLinks((prev) => prev.filter((_, i) => i !== index));
@@ -33,12 +28,12 @@ function LinksPage() {
       </p>
       {/* add new link button */}
       <div
-        onClick={() => setLinksNumber(linksNumber + 1)}
+        onClick={() => {}}
         className="border-1 border-[#633CFF] font-medium text-sm text-[#633CFF] rounded-md  flex items-center justify-center px-4 sm:px-6 py-3 gap-1 cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10 mb-8"
       >
         + Add new Link
       </div>
-      {linksNumber > 0 && (
+      {UpdatedLinks.length > 0 && (
         <div className="mb-6 flex-grow border-b border-divider">
           <div className="h-[480px] overflow-y-auto no-scrollbar">
             {/* each link div */}
@@ -58,7 +53,9 @@ function LinksPage() {
                           height={6}
                         />
                       </div>
-                      <p className="text-[#737373] font-semibold text-lg">{`Link #${link.id}`}</p>
+                      <p className="text-[#737373] font-semibold text-lg">{`Link #${
+                        index + 1
+                      }`}</p>
                     </div>
                     <p
                       className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
@@ -110,7 +107,7 @@ function LinksPage() {
                       label="Link"
                       labelPlacement={"outside"}
                       type="text"
-                      placeholder={link.link}
+                      placeholder={"e.g. https://www.github.com/johnappleseed"}
                       startContent={
                         <div>
                           <img src="/icon-links-header.svg" alt="link img" />
@@ -132,7 +129,7 @@ function LinksPage() {
       )}
 
       {/* if there is no links component */}
-      {linksNumber === 0 && (
+      {UpdatedLinks.length === 0 && (
         <div className="w-full h-full bg-[#FAFAFA]   flex justify-center items-center flex-col p-5 shadow-sm flex-grow mb-6">
           <div className="w-fit h-fit bg-white bg-opacity-5 mb-6">
             <img
