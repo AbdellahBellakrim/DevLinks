@@ -19,7 +19,7 @@ function NavBar() {
     setPage(location.pathname.substring(1));
   }, [location]);
   return (
-    <div className="bg-white w-screen h-[74px] shadow-sm mb-4 md:mb-6 sticky top-0 z-10">
+    <div className="bg-white w-screen h-[74px] shadow-sm mb-4 md:mb-6 fixed top-0 z-10">
       <div className="w-full h-full max-w-[1440px] mx-auto flex justify-between items-center gap-3 p-4 px-6 z-10">
         <div
           className="flex justify-center items-center gap-1 cursor-pointer"

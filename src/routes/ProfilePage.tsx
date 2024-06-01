@@ -1,8 +1,9 @@
 import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button, Input } from "@nextui-org/react";
-import { userState } from "../apollo-client/apollo-client";
+import { dataChangingState, userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
 import { UPDATE_USER } from "../apollo-client/mutations";
+import { userType } from "../apollo-client/types";
 
 function ProfilePage() {
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
@@ -11,9 +12,13 @@ function ProfilePage() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
-  const HASURA_GRAPHQL_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
+  const CLOUDINARY_ENDPOINT = import.meta.env.VITE_CLOUDINARY_ENDPOINT;
 
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
@@ -32,8 +37,14 @@ function ProfilePage() {
   useEffect(() => {
     if (User) {
       setImagePreview(User.profile_picture);
-      console.log(User);
+      // console.log(User);
     }
+  }, [User]);
+
+  useEffect(() => {
+    setFirstName(User?.firstname || "");
+    setLastName(User?.lastname || "");
+    setEmail(User?.email || "");
   }, [User]);
 
   const handleDivClick = () => {
@@ -53,33 +64,64 @@ function ProfilePage() {
   };
 
   const handleSave = async () => {
-    if (selectedImage && User) {
-      const formData = new FormData();
-      formData.append("file", selectedImage);
-      formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-      formData.append("upload_preset", CLOUDINARY_PRESET);
+    dataChangingState(true);
+    if (
+      selectedImage ||
+      ((firstName !== User?.firstname ||
+        lastName !== User?.lastname ||
+        email !== User?.email) &&
+        firstName !== "" &&
+        lastName !== "" &&
+        email !== "")
+    ) {
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("file", selectedImage);
+        formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+        formData.append("upload_preset", CLOUDINARY_PRESET);
 
-      const response = await fetch(HASURA_GRAPHQL_ENDPOINT, {
-        method: "POST",
-        body: formData,
-      });
+        const response = await fetch(CLOUDINARY_ENDPOINT, {
+          method: "POST",
+          body: formData,
+        });
 
-      const data = await response.json();
-      setImagePreview(data.secure_url);
-      userState({
-        ...User,
-        profile_picture: data.secure_url,
-      });
-      updateUser({
-        variables: {
-          id: User.id,
-          lastname: User.lastname,
-          email: User.email,
-          firstname: User.firstname,
+        const data = await response.json();
+        setImagePreview(data.secure_url);
+        userState({
+          ...User,
           profile_picture: data.secure_url,
-        },
-      });
+          firstname: firstName,
+          lastname: lastName,
+          email: email,
+        } as userType);
+        updateUser({
+          variables: {
+            id: User?.id,
+            lastname: lastName,
+            email: email,
+            firstname: firstName,
+            profile_picture: data.secure_url,
+          },
+        });
+      } else {
+        userState({
+          ...User,
+          firstname: firstName,
+          lastname: lastName,
+          email: email,
+        } as userType);
+        updateUser({
+          variables: {
+            id: User?.id,
+            lastname: lastName,
+            email: email,
+            firstname: firstName,
+            profile_picture: User?.profile_picture,
+          },
+        });
+      }
     }
+    dataChangingState(false);
   };
 
   return (
@@ -153,13 +195,15 @@ function ProfilePage() {
           </p>
         </div>
         {/* second container (form) */}
-        <div className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
+        <form className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
           <Input
+            onChange={(e) => setFirstName(e.target.value)}
             radius="sm"
+            value={firstName}
             label="First name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
-            placeholder={User?.firstname ? User.firstname : "e.g. John"}
+            placeholder={"e.g. John"}
             isRequired
             classNames={{
               base: "text-[#737373]",
@@ -172,11 +216,13 @@ function ProfilePage() {
             }}
           />
           <Input
+            onChange={(e) => setLastName(e.target.value)}
+            value={lastName}
             radius="sm"
             label="Last name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
-            placeholder={User?.lastname ? User.lastname : "Wright"}
+            placeholder={"Wright"}
             isRequired
             classNames={{
               base: "text-[#737373]",
@@ -189,14 +235,16 @@ function ProfilePage() {
             }}
           />
           <Input
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
             radius="sm"
             label="Email"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="email"
-            placeholder={User?.email ? User.email : "ben@example.com"}
+            placeholder={"ben@example.com"}
             isRequired
             classNames={{
-              base: "text-[#737373]",
+              base: "text-[#737373] z-0",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
@@ -205,7 +253,7 @@ function ProfilePage() {
                 "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
-        </div>
+        </form>
       </div>
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">

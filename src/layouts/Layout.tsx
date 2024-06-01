@@ -2,11 +2,12 @@ import { Outlet } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import Mockup from "../components/Mockup";
 import { useQuery, useReactiveVar } from "@apollo/client";
-import { userState } from "../apollo-client/apollo-client";
+import { dataChangingState, userState } from "../apollo-client/apollo-client";
 import { GET_USER_BY_ID } from "../apollo-client/queries";
 import { useEffect } from "react";
 import Loading from "../components/Loading";
 import Error from "../components/Error";
+import ChangingData from "../components/ChangingData";
 
 function DashboardLayout() {
   // get data of user from hasura cloud
@@ -31,6 +32,7 @@ function DashboardLayout() {
 
   // get user data from userState
   const User = useReactiveVar(userState);
+  const DataChaging = useReactiveVar(dataChangingState);
 
   if (loading || !User) return <Loading />;
   if (error) return <Error message={error?.message} />;
@@ -38,10 +40,11 @@ function DashboardLayout() {
     return (
       <div className="w-screen h-screen relative bg-[#FAFAFA] flex flex-col">
         <NavBar />
-        <div className="w-full max-w-[1440px] mx-auto p-0 md:p-6 flex md:gap-6  flex-grow justify-center">
+        <div className="w-full max-w-[1440px] mx-auto p-0 md:p-6 flex md:gap-6  flex-grow justify-center z-0 mt-[74px]">
           <Mockup />
           <Outlet />
         </div>
+        {DataChaging && <ChangingData />}
       </div>
     );
   }
