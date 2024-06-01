@@ -7,6 +7,7 @@ import Layout from "./layouts/Layout";
 import LinksPage from "./routes/LinksPage";
 import ProfilePage from "./routes/ProfilePage";
 import PreviewPage from "./routes/PreviewPage";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/preview" element={<PreviewPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Toaster />
     </div>
   );
 }

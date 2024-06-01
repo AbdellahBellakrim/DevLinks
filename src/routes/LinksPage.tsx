@@ -157,10 +157,7 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto ${
-            linksNumber === 0 ? "opacity-40" : "opacity-100"
-          }`}
-          disabled={linksNumber === 0 ? true : false}
+          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
           Save
         </Button>

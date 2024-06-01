@@ -4,6 +4,7 @@ import { dataChangingState, userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
 import { UPDATE_USER } from "../apollo-client/mutations";
 import { userType } from "../apollo-client/types";
+import toast from "react-hot-toast";
 
 function ProfilePage() {
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
@@ -37,7 +38,6 @@ function ProfilePage() {
   useEffect(() => {
     if (User) {
       setImagePreview(User.profile_picture);
-      // console.log(User);
     }
   }, [User]);
 
@@ -64,7 +64,6 @@ function ProfilePage() {
   };
 
   const handleSave = async () => {
-    dataChangingState(true);
     if (
       selectedImage ||
       ((firstName !== User?.firstname ||
@@ -74,6 +73,7 @@ function ProfilePage() {
         lastName !== "" &&
         email !== "")
     ) {
+      dataChangingState(true);
       if (selectedImage) {
         const formData = new FormData();
         formData.append("file", selectedImage);
@@ -120,8 +120,19 @@ function ProfilePage() {
           },
         });
       }
+      dataChangingState(false);
+      toast("Your changes have been successfully saved!", {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "#333333",
+        },
+      });
     }
-    dataChangingState(false);
   };
 
   return (
