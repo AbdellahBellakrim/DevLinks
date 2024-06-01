@@ -3,11 +3,12 @@ import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { userState } from "../apollo-client/apollo-client";
 import { platforms } from "../apollo-client/apollo-client";
+import { LinkType } from "../apollo-client/types";
 
 function LinksPage() {
   const User = useReactiveVar(userState);
   const [linksNumber, setLinksNumber] = useState<number>(0);
-  const [UpdatedLinks, setUpdatedLinks] = useState<any[]>([]);
+  const [UpdatedLinks, setUpdatedLinks] = useState<LinkType[]>([]);
 
   useEffect(() => {
     if (User) {

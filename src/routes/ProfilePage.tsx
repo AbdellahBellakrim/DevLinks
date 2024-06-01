@@ -1,13 +1,19 @@
-import { useReactiveVar } from "@apollo/client";
+import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button, Input } from "@nextui-org/react";
 import { userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
+import { UPDATE_USER } from "../apollo-client/mutations";
 
 function ProfilePage() {
-  const [updatedUser, setUpdatedUser] = useState<any>({});
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
     window.innerWidth < 640
   );
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
+  const HASURA_GRAPHQL_ENDPOINT = import.meta.env.VITE_HASURA_GRAPHQL_ENDPOINT;
 
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
@@ -20,18 +26,61 @@ function ProfilePage() {
 
   // get user data from userState
   const User = useReactiveVar(userState);
+  // get the update user mutation
+  const [updateUser] = useMutation(UPDATE_USER);
 
   useEffect(() => {
     if (User) {
-      setUpdatedUser({
-        ...User,
-      });
+      setImagePreview(User.profile_picture);
+      console.log(User);
     }
   }, [User]);
 
-  useEffect(() => {
-    console.log(updatedUser);
-  }, [updatedUser]);
+  const handleDivClick = () => {
+    document.getElementById("file-input")?.click();
+  };
+
+  const handleFileChange = (e: any) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        setSelectedImage(file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSave = async () => {
+    if (selectedImage && User) {
+      const formData = new FormData();
+      formData.append("file", selectedImage);
+      formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const response = await fetch(HASURA_GRAPHQL_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      setImagePreview(data.secure_url);
+      userState({
+        ...User,
+        profile_picture: data.secure_url,
+      });
+      updateUser({
+        variables: {
+          id: User.id,
+          lastname: User.lastname,
+          email: User.email,
+          firstname: User.firstname,
+          profile_picture: data.secure_url,
+        },
+      });
+    }
+  };
 
   return (
     <div className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md">
@@ -41,61 +90,76 @@ function ProfilePage() {
       </p>
       <div className="flex-grow  mb-6 border-b border-divider">
         {/* first container */}
-        <div className="min-h-[233px] rounded-xl bg-black bg-opacity-5  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
+        <div className="min-h-[233px] rounded-xl bg-[#FAFAFA]  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
           <h2 className="w-[40%] font-normal text-sm text-[#737373]">
             Profile Picture
           </h2>
-          {updatedUser.profile_picture === null ? (
-            <div className="min-w-[193px] min-h-[193px] bg-[#633CFF] bg-opacity-10 rounded-md cursor-pointer flex justify-center items-center flex-col hover:opacity-80">
-              <div className="w-fit h-fit bg-white bg-opacity-5">
-                <img
-                  className="bg-white bg-opacity-5 z-0"
-                  src="icon-upload-image.svg"
-                  alt="icon-upload-image.svg"
-                  loading="lazy"
-                />
-              </div>
-              <p className="text-[#633CFF] font-semibold text-sm">
-                + Upload Image
-              </p>
-            </div>
-          ) : (
-            <div className="relative group w-[193px] h-[193px] min-w-[193px] min-h-[193px] rounded-md cursor-pointer flex justify-center items-center flex-col hover:opacity-80">
-              <img
-                className="w-full h-full z-0 rounded-md bg-white bg-opacity-5  group-hover:scale-95 transition-transform duration-300 ease-in-out"
-                src={updatedUser.profile_picture}
-                alt="profile_picture"
-                loading="lazy"
-                style={{
-                  objectFit: "cover",
-                  objectPosition: "center",
-                }}
-              />
-              <div className="absolute  text-white inset-0 m-auto w-full h-full hidden group-hover:flex items-center justify-center flex-col">
+          <div
+            onClick={handleDivClick}
+            className="relative group w-[193px] bg-[#633CFF] bg-opacity-10 h-[193px] min-w-[193px] min-h-[193px] rounded-md cursor-pointer flex justify-center items-center flex-col hover:opacity-80"
+          >
+            <input
+              id="file-input"
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+            {imagePreview === null ? (
+              <>
                 <div className="w-fit h-fit bg-white bg-opacity-5">
                   <img
                     className="bg-white bg-opacity-5 z-0"
-                    src="icon-upload-image-white.svg"
-                    alt="icon-upload-image-white.svg"
+                    src="icon-upload-image.svg"
+                    alt="icon-upload-image.svg"
                     loading="lazy"
                   />
                 </div>
-                <p className="text-white font-semibold text-sm">Change Image</p>
-              </div>
-            </div>
-          )}
+                <p className="text-[#633CFF] font-semibold text-sm">
+                  + Upload Image
+                </p>
+              </>
+            ) : (
+              <>
+                <img
+                  className="min-w-full min-h-full z-0 rounded-md bg-white bg-opacity-5  group-hover:scale-105 transition-transform duration-300 ease-in-out"
+                  src={imagePreview}
+                  alt="profile_picture"
+                  loading="lazy"
+                  style={{
+                    objectFit: "cover",
+                    objectPosition: "center",
+                  }}
+                />
+                <div className="absolute  text-white inset-0 m-auto w-full h-full hidden group-hover:flex items-center justify-center flex-col">
+                  <div className="w-fit h-fit bg-white bg-opacity-5">
+                    <img
+                      className="bg-white bg-opacity-5 z-0"
+                      src="icon-upload-image-white.svg"
+                      alt="icon-upload-image-white.svg"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-white font-semibold text-sm">
+                    Change Image
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+
           <p className="font-normal text-xs text-[#737373]">
             Image must be below 1024x1024px. Use PNG or JPG format.
           </p>
         </div>
         {/* second container (form) */}
-        <div className="min-h-[208px] rounded-xl bg-black bg-opacity-5 p-5 flex flex-col gap-5">
+        <div className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
           <Input
             radius="sm"
             label="First name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
-            placeholder="e.g. John"
+            placeholder={User?.firstname ? User.firstname : "e.g. John"}
             isRequired
             classNames={{
               base: "text-[#737373]",
@@ -112,7 +176,7 @@ function ProfilePage() {
             label="Last name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
-            placeholder="Wright"
+            placeholder={User?.lastname ? User.lastname : "Wright"}
             isRequired
             classNames={{
               base: "text-[#737373]",
@@ -129,7 +193,7 @@ function ProfilePage() {
             label="Email"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="email"
-            placeholder="ben@example.com"
+            placeholder={User?.email ? User.email : "ben@example.com"}
             isRequired
             classNames={{
               base: "text-[#737373]",
@@ -146,6 +210,7 @@ function ProfilePage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
+          onClick={handleSave}
           className={`rounded-md bg-[#633CFF] text-white w-full sm:w-auto`}
         >
           Save
