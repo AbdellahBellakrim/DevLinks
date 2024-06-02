@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import NotFound from "./routes/NotFoundPage";
 import HomePage from "./routes/HomePage";
 import Login from "./routes/Login";
@@ -8,6 +8,17 @@ import LinksPage from "./routes/LinksPage";
 import ProfilePage from "./routes/ProfilePage";
 import PreviewPage from "./routes/PreviewPage";
 import { Toaster } from "react-hot-toast";
+
+function PreviewPageWrapper() {
+  const [searchParams] = useSearchParams();
+  const username = searchParams.get("username");
+
+  if (!username) {
+    return <Navigate to="/notfound" />;
+  }
+
+  return <PreviewPage username={username} />;
+}
 
 function App() {
   return (
@@ -20,7 +31,7 @@ function App() {
           <Route path="links" element={<LinksPage />} />
           <Route path="profile" element={<ProfilePage />} />
         </Route>
-        <Route path="/preview" element={<PreviewPage />} />
+        <Route path="/preview" element={<PreviewPageWrapper />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

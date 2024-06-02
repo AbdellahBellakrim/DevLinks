@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import IconLinksHeader from "./LinksIcon";
 import IconProfileHeader from "./ProfileIcon";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useReactiveVar } from "@apollo/client";
+import { userState } from "../apollo-client/apollo-client";
 
 type PageType = "links" | "profile" | "preview" | string;
 
@@ -11,6 +13,8 @@ function NavBar() {
   const [page, setPage] = useState<PageType>("links");
   const [isLinksHovered, setIsLinksHovered] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
+
+  const User = useReactiveVar(userState);
 
   const ActiveStyle: string = "bg-[#EFEBFF] text-[#633CFF]";
   const InActiveStyle: string = "bg-white text-[#737373]";
@@ -84,7 +88,7 @@ function NavBar() {
           <div
             onClick={() => {
               setPage("preview");
-              navigate("/preview");
+              navigate(`/preview?username=${User?.username}`);
             }}
             className="border-1 border-[#633CFF] font-medium text-sm text-[#633CFF] rounded-md  flex items-center justify-center px-4 sm:px-6 py-3 gap-1 cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10"
           >
