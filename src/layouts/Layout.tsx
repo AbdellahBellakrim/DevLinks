@@ -12,7 +12,7 @@ import ChangingData from "../components/ChangingData";
 function DashboardLayout() {
   // get data of user from hasura cloud
   const { loading, error, data } = useQuery(GET_USER_BY_ID, {
-    variables: { id: 1 },
+    variables: { id: 3 },
   });
 
   // set user data to userState

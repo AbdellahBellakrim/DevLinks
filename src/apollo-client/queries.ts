@@ -18,3 +18,18 @@ export const GET_USER_BY_ID = gql`
     }
   }
 `;
+export const GET_USER_DATA_BY_USERNAME = gql`
+  query MyQuery($username: String!) {
+    devlinks_user(where: { username: { _eq: $username } }) {
+      email
+      firstname
+      lastname
+      profile_picture
+      links {
+        id
+        link
+        platform
+      }
+    }
+  }
+`;
