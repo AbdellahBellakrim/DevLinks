@@ -6,15 +6,15 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  z-index: 0;
 }
 
-img[alt] {
+/* img[alt] {
   color: transparent;
   font-size: 0;
   text-indent: -9999px;
-  /* Additional styling to make sure it's not visible */
   overflow: hidden;
-}
+} */
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;

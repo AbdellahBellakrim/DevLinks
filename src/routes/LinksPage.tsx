@@ -3,21 +3,17 @@ import { Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import { userState } from "../apollo-client/apollo-client";
 import { platforms } from "../apollo-client/apollo-client";
+import { LinkType } from "../apollo-client/types";
 
 function LinksPage() {
   const User = useReactiveVar(userState);
-  const [linksNumber, setLinksNumber] = useState<number>(0);
-  const [UpdatedLinks, setUpdatedLinks] = useState<any[]>([]);
+  const [UpdatedLinks, setUpdatedLinks] = useState<LinkType[]>([]);
 
   useEffect(() => {
     if (User) {
       setUpdatedLinks(User.links);
     }
   }, [User]);
-
-  useEffect(() => {
-    setLinksNumber(UpdatedLinks.length);
-  }, [UpdatedLinks]);
 
   const removeLinkFromUpdatedLinks = (index: number) => {
     setUpdatedLinks((prev) => prev.filter((_, i) => i !== index));
@@ -32,104 +28,108 @@ function LinksPage() {
       </p>
       {/* add new link button */}
       <div
-        onClick={() => setLinksNumber(linksNumber + 1)}
+        onClick={() => {}}
         className="border-1 border-[#633CFF] font-medium text-sm text-[#633CFF] rounded-md  flex items-center justify-center px-4 sm:px-6 py-3 gap-1 cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10 mb-8"
       >
         + Add new Link
       </div>
-      {linksNumber > 0 && (
-        <div className="mb-6 border-b border-divider flex-grow max-h-[481px] overflow-y-auto no-scrollbar p-1">
-          {/* each link div */}
-          {UpdatedLinks.map((link, index: number) => (
-            <div className="mb-6  h-[228px] w-full" key={link.id}>
-              <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
-                {/* card header */}
-                <div className="w-full flex items-center justify-between mb-3">
-                  <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
-                    <div className="w-fit h-fit bg-white bg-opacity-5">
-                      <img
-                        className="bg-white bg-opacity-5 z-0"
-                        src="icon-drag-and-drop.svg"
-                        alt="icon-drag-and-drop.svg"
-                        loading="lazy"
-                        width={12}
-                        height={6}
-                      />
-                    </div>
-                    <p className="text-[#737373] font-semibold text-lg">{`Link #${link.id}`}</p>
-                  </div>
-                  <p
-                    className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
-                    onClick={() => removeLinkFromUpdatedLinks(index)}
-                  >
-                    Remove
-                  </p>
-                </div>
-                {/* form */}
-                <div className="flex-grow">
-                  <Select
-                    label="Platform"
-                    placeholder={link.platform}
-                    labelPlacement="outside"
-                    classNames={{
-                      value: "opacity-75",
-                      label: "opacity-85 font-normal",
-                      mainWrapper: "mb-6",
-                      trigger:
-                        "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
-                      popoverContent: "rounded-md mt-2",
-                    }}
-                    listboxProps={{
-                      itemClasses: {
-                        base: [
-                          "rounded-md",
-                          "text-default-500",
-                          "transition-opacity",
-                          "data-[hover=true]:bg-default-100",
-                          "data-[selectable=true]:focus:bg-default-50",
-                          "data-[selectable=true]:focus:text-[#633CFF]",
-                          "data-[pressed=true]:opacity-70",
-                          "data-[focus-visible=true]:ring-default-500",
-                        ],
-                      },
-                    }}
-                  >
-                    {platforms.map((platform, index) => (
-                      <SelectItem
-                        key={index}
-                        className="border-b border-divider rounded-none text-[#737373]"
-                      >
-                        {platform}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                  <Input
-                    radius="sm"
-                    label="Link"
-                    labelPlacement={"outside"}
-                    type="text"
-                    placeholder={link.link}
-                    startContent={
-                      <div>
-                        <img src="/icon-links-header.svg" alt="link img" />
+      {UpdatedLinks.length > 0 && (
+        <div className="mb-6 flex-grow border-b border-divider">
+          <div className="h-[480px] overflow-y-auto no-scrollbar">
+            {/* each link div */}
+            {UpdatedLinks.map((link, index: number) => (
+              <div className="mb-6  h-[228px] w-full" key={link.id}>
+                <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
+                  {/* card header */}
+                  <div className="w-full flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
+                      <div className="w-fit h-fit bg-white bg-opacity-5">
+                        <img
+                          className="bg-white bg-opacity-5 z-0"
+                          src="icon-drag-and-drop.svg"
+                          alt="icon-drag-and-drop.svg"
+                          loading="lazy"
+                          width={12}
+                          height={6}
+                        />
                       </div>
-                    }
-                    classNames={{
-                      inputWrapper:
-                        "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
-                      label: "opacity-85 font-normal",
-                      input: "opacity-75",
-                    }}
-                  />
+                      <p className="text-[#737373] font-semibold text-lg">{`Link #${
+                        index + 1
+                      }`}</p>
+                    </div>
+                    <p
+                      className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
+                      onClick={() => removeLinkFromUpdatedLinks(index)}
+                    >
+                      Remove
+                    </p>
+                  </div>
+                  {/* form */}
+                  <div className="flex-grow">
+                    <Select
+                      label="Platform"
+                      placeholder={link.platform}
+                      labelPlacement="outside"
+                      classNames={{
+                        value: "opacity-75",
+                        label: "opacity-85 font-normal",
+                        mainWrapper: "mb-6",
+                        trigger:
+                          "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+                        popoverContent: "rounded-md mt-2",
+                      }}
+                      listboxProps={{
+                        itemClasses: {
+                          base: [
+                            "rounded-md",
+                            "text-default-500",
+                            "transition-opacity",
+                            "data-[hover=true]:bg-default-100",
+                            "data-[selectable=true]:focus:bg-default-50",
+                            "data-[selectable=true]:focus:text-[#633CFF]",
+                            "data-[pressed=true]:opacity-70",
+                            "data-[focus-visible=true]:ring-default-500",
+                          ],
+                        },
+                      }}
+                    >
+                      {platforms.map((platform, index) => (
+                        <SelectItem
+                          key={index}
+                          className="border-b border-divider rounded-none text-[#737373]"
+                        >
+                          {platform}
+                        </SelectItem>
+                      ))}
+                    </Select>
+                    <Input
+                      radius="sm"
+                      label="Link"
+                      labelPlacement={"outside"}
+                      type="text"
+                      placeholder={"e.g. https://www.github.com/johnappleseed"}
+                      startContent={
+                        <div>
+                          <img src="/icon-links-header.svg" alt="link img" />
+                        </div>
+                      }
+                      classNames={{
+                        inputWrapper:
+                          "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+                        label: "opacity-85 font-normal",
+                        input: "opacity-75",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       {/* if there is no links component */}
-      {linksNumber === 0 && (
+      {UpdatedLinks.length === 0 && (
         <div className="w-full h-full bg-[#FAFAFA]   flex justify-center items-center flex-col p-5 shadow-sm flex-grow mb-6">
           <div className="w-fit h-fit bg-white bg-opacity-5 mb-6">
             <img
@@ -154,10 +154,7 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          className={`rounded-md bg-[#633CFF] text-white ${
-            linksNumber === 0 ? "opacity-40" : "opacity-100"
-          }`}
-          disabled={linksNumber === 0 ? true : false}
+          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
           Save
         </Button>
