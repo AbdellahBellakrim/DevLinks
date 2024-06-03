@@ -1,5 +1,7 @@
 import { useReactiveVar } from "@apollo/client";
 import { userState } from "../apollo-client/apollo-client";
+import { LinkType } from "../apollo-client/types";
+import SocialButton from "./SocialButton";
 
 function Mockup() {
   const User = useReactiveVar(userState);
@@ -31,6 +33,20 @@ function Mockup() {
               </p>
             </div>
           )}
+          <div className="mt-[25px] flex flex-col gap-5">
+            {User &&
+              User?.links.length &&
+              User?.links
+                .slice(0, 5)
+                .map((link: LinkType) => (
+                  <SocialButton
+                    platform={link.platform}
+                    link={link.link}
+                    key={link.id}
+                    height="h-[44px]"
+                  />
+                ))}
+          </div>
         </div>
       </div>
     </div>
