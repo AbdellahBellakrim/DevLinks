@@ -7,6 +7,7 @@ import Loading from "../components/Loading";
 import Error from "../components/Error";
 import { useEffect, useState } from "react";
 import SocialButton from "../components/SocialButton";
+import { LinkType } from "../apollo-client/types";
 
 type previewUserType = {
   firstname: string;
@@ -112,12 +113,13 @@ function PreviewPage({ username }: { username: string }) {
           <div className="w-full  gap-5 flex flex-col items-center">
             {previewUser !== null &&
               previewUser?.links.length &&
-              previewUser.links.map((link: any) => {
+              previewUser.links.map((link: LinkType) => {
                 return (
                   <SocialButton
                     platform={link.platform}
                     link={link.link}
                     key={link.id}
+                    height="h-[56px]"
                   />
                 );
               })}

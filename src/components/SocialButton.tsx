@@ -64,7 +64,15 @@ function formatLink(link: string) {
   return link;
 }
 
-function SocialButton({ platform, link }: { platform: string; link: string }) {
+function SocialButton({
+  platform,
+  link,
+  height,
+}: {
+  platform: string;
+  link: string;
+  height: string;
+}) {
   const formattedLink = formatLink(link);
   const Styles: string = iconStyles[platform] || "";
   const IconComponent = iconComponents[platform] || null;
@@ -72,7 +80,7 @@ function SocialButton({ platform, link }: { platform: string; link: string }) {
   return (
     <a href={formattedLink} target="_blank" rel="noopener noreferrer">
       <Button
-        className={`w-[237px] h-[56px] rounded-lg ${Styles} flex justify-between`}
+        className={`w-[237px] ${height} rounded-lg ${Styles} flex justify-between`}
       >
         <div className="flex gap-4">
           {IconComponent && <IconComponent fillColor="white" />}
