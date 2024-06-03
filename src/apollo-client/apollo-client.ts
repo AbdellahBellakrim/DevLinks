@@ -31,6 +31,9 @@ const client = new ApolloClient({
 
 export const userState = makeVar<userType | null>(null);
 export const dataChangingState = makeVar<boolean>(false);
+
+// ==================================================================
+
 export const platforms: string[] = [
   "Github",
   "Frontend Mentor",

@@ -6,6 +6,7 @@ import { useQuery } from "@apollo/client";
 import Loading from "../components/Loading";
 import Error from "../components/Error";
 import { useEffect, useState } from "react";
+import SocialButton from "../components/SocialButton";
 
 type previewUserType = {
   firstname: string;
@@ -40,10 +41,6 @@ function PreviewPage({ username }: { username: string }) {
     }
   }, [data]);
 
-  useEffect(() => {
-    console.log(previewUser);
-  }, [previewUser]);
-
   if (loading) return <Loading />;
   if (error) return <Error message={error?.message} />;
 
@@ -56,7 +53,7 @@ function PreviewPage({ username }: { username: string }) {
       {/* bacground cover  */}
       <div className="absolute z-[-1] w-full h-[357px] bg-[#633CFF] rounded-b-2xl inset-0 top-0 hidden sm:block"></div>
       {/* nav */}
-      <div className="absolute z-[-1] inset-0 top-0 w-full sm:w-[calc(100%-48px)] h-[78px] bg-[#FAFAFA]  sm:rounded-xl m-0 sm:m-6 p-4  flex justify-between items-center gap-4">
+      <div className="sticky sm:absolute z-10 inset-0 top-0 w-full sm:w-[calc(100%-48px)] h-[78px] bg-[#FAFAFA]  sm:rounded-xl m-0 sm:m-6 p-4 px-7  flex justify-between items-center gap-4">
         {/* button */}
         <div
           onClick={() => {
@@ -95,22 +92,37 @@ function PreviewPage({ username }: { username: string }) {
         </Button>
       </div>
       {/* cart */}
-      <div className="absolute inset-0 w-full sm:w-[349px] h-fit sm:h-[569px] sm:rounded-2xl bg-[#FAFAFA]  sm:shadow-md mt-[78px] sm:mt-52 mb-6 mx-auto py-12 px-8  md:px-14 sm:overflow-auto sm:scrollbar-hide">
-        <div className="w-[120px] h-[120px] rounded-full overflow-hidden  mb-6 bg-black bg-opacity-10 mx-auto">
-          {previewUser?.profile_picture && (
-            <img
-              className="w-full h-full object-cover border-5 border-[#633CFF] rounded-full"
-              src={previewUser?.profile_picture}
-              alt="profile picture"
-            />
-          )}
+      <div className="absolute inset-0 w-full sm:w-[349px] h-fit sm:h-[569px] sm:rounded-2xl bg-[#FAFAFA] sm:shadow-md mt-[78px] sm:mt-52 mb-6 mx-auto py-12 px-8  md:px-14">
+        <div className="w-full h-full  sm:overflow-auto sm:scrollbar-hide rounded-lg">
+          <div className="w-[120px] h-[120px] rounded-full overflow-hidden  mb-6 bg-black bg-opacity-10 mx-auto">
+            {previewUser?.profile_picture && (
+              <img
+                className="w-full h-full object-cover border-5 border-[#633CFF] rounded-full"
+                src={previewUser?.profile_picture}
+                alt="profile picture"
+              />
+            )}
+          </div>
+          <h1 className="font-bold text-2xl text-[#333333] mb-4 mx-auto text-center">
+            {previewUser?.firstname} {previewUser?.lastname}
+          </h1>
+          <p className="font-normal text-sm text-[#737373] mb-12 mx-auto text-center ">
+            {previewUser?.email}
+          </p>
+          <div className="w-full  gap-5 flex flex-col items-center">
+            {previewUser !== null &&
+              previewUser?.links.length &&
+              previewUser.links.map((link: any) => {
+                return (
+                  <SocialButton
+                    platform={link.platform}
+                    link={link.link}
+                    key={link.id}
+                  />
+                );
+              })}
+          </div>
         </div>
-        <h1 className="font-bold text-2xl text-[#333333] mb-4 mx-auto">
-          {previewUser?.firstname} {previewUser?.lastname}
-        </h1>
-        <p className="font-normal text-sm text-[#737373] mb-6 mx-auto text-center">
-          {previewUser?.email}
-        </p>
       </div>
     </div>
   );

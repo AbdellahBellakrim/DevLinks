@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import IconLinksHeader from "./LinksIcon";
-import IconProfileHeader from "./ProfileIcon";
+import IconLinksHeader from "./Icons/LinksIcon";
+import IconProfileHeader from "./Icons/ProfileIcon";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useReactiveVar } from "@apollo/client";
 import { userState } from "../apollo-client/apollo-client";
