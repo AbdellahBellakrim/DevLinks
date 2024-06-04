@@ -35,8 +35,8 @@ function Mockup() {
           )}
           <div className="mt-[25px] flex flex-col gap-5">
             {User &&
-              User?.links.length &&
-              User?.links
+              User.links.length > 0 &&
+              User.links
                 .slice(0, 5)
                 .map((link: LinkType) => (
                   <SocialButton

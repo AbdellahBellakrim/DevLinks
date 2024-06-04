@@ -18,7 +18,7 @@ import {
   StackOverflowIcon,
 } from "../components/Icons/SocialIcons.tsx";
 
-const iconComponents: any = {
+export const iconComponents: any = {
   Github: GithubIcon,
   "Frontend Mentor": FrontendMentorIcon,
   Twitter: TwitterIcon,
