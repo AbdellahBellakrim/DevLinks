@@ -46,6 +46,59 @@ function LinksPage() {
     }
   };
 
+  const validateLinks = (): boolean => {
+    const linkSet = new Set();
+    for (const link of User?.links || []) {
+      if (!platforms.includes(link.platform)) {
+        toast("Oops, platform is not valid!", {
+          position: "top-center",
+          duration: 2000,
+          style: {
+            width: "fit-content",
+            maxWidth: "406px",
+            padding: "16px 24px",
+            color: "#FAFAFA",
+            backgroundColor: "red",
+          },
+        });
+        return false;
+      }
+      if (linkSet.has(link.platform)) {
+        toast("You already have a link with this platform!", {
+          position: "top-center",
+          duration: 2000,
+          style: {
+            width: "fit-content",
+            maxWidth: "406px",
+            padding: "16px 24px",
+            color: "#FAFAFA",
+            backgroundColor: "red",
+          },
+        });
+        return false;
+      }
+      linkSet.add(link.platform);
+    }
+    return true;
+  };
+
+  const handleButtonClick = () => {
+    if (validateLinks()) {
+      // Proceed with saving data...
+      toast("Links successfully updated!", {
+        position: "top-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "green",
+        },
+      });
+    }
+  };
+
   return (
     <div className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md">
       <h1 className="font-bold text-3xl mb-3">Customize your links</h1>
@@ -96,11 +149,10 @@ function LinksPage() {
                       {/* form */}
                       <div className="flex-grow">
                         <Select
-                          isRequired
                           label="Platform"
                           placeholder={link.platform}
                           labelPlacement="outside"
-                          value={link.platform || platforms[0]}
+                          value={link.platform}
                           classNames={{
                             value: "opacity-75",
                             label: "opacity-85 font-normal",
@@ -139,20 +191,6 @@ function LinksPage() {
                             });
                           }}
                           onChange={(e: any) => {
-                            // toast(
-                            //   "You already have a link with this platform!",
-                            //   {
-                            //     position: "top-center",
-                            //     duration: 2000,
-                            //     style: {
-                            //       width: "fit-content",
-                            //       maxWidth: "406px",
-                            //       padding: "16px 24px",
-                            //       color: "#FAFAFA",
-                            //       backgroundColor: "#333333",
-                            //     },
-                            //   }
-                            // );
                             if (!e.target.value) return;
                             const updatedLinks = User?.links.map((l, i) =>
                               i === index
@@ -191,7 +229,6 @@ function LinksPage() {
                           })}
                         </Select>
                         <Input
-                          isRequired
                           radius="sm"
                           label="Link"
                           labelPlacement={"outside"}
@@ -257,6 +294,7 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
+          onClick={handleButtonClick}
           className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
           Save
