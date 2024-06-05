@@ -14,6 +14,7 @@ export const GET_USER_BY_ID = gql`
         id
         link
         platform
+        user_id
       }
     }
   }
