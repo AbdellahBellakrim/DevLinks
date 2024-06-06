@@ -2,7 +2,7 @@ import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button, Input } from "@nextui-org/react";
 import { dataChangingState, userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
-import { UPDATE_USER } from "../apollo-client/mutations";
+import { UPDATE_USER_BY_PK } from "../apollo-client/mutations";
 import { userType } from "../apollo-client/types";
 import toast from "react-hot-toast";
 
@@ -33,7 +33,7 @@ function ProfilePage() {
   // get user data from userState
   const User = useReactiveVar(userState);
   // get the update user mutation
-  const [updateUser] = useMutation(UPDATE_USER);
+  const [updateUser] = useMutation(UPDATE_USER_BY_PK);
 
   useEffect(() => {
     if (User) {

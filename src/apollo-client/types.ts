@@ -1,7 +1,7 @@
 export type LinkType = {
+  id: number;
   link: string;
   platform: string;
-  id: number;
   user_id: number;
 };
 

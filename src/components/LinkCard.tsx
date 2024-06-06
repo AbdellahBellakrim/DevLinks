@@ -2,6 +2,8 @@ import { Input, Select, SelectItem, SelectSection } from "@nextui-org/react";
 import { platforms } from "../apollo-client/apollo-client";
 import { iconComponents } from "./SocialButton";
 import { LinkType } from "../apollo-client/types";
+import { UseFormRegister } from "react-hook-form";
+import { FormFields } from "../routes/LinksPage";
 
 const linkExamples: any = {
   Github: "e.g. https://www.github.com/johnappleseed",
@@ -21,23 +23,21 @@ const linkExamples: any = {
 };
 
 function LinkCard({
-  link,
   index,
-  links,
-  setLinks,
+  link,
+  register,
+  remove,
+  update,
 }: {
-  link: LinkType;
   index: number;
-  links: LinkType[];
-  setLinks: React.Dispatch<React.SetStateAction<LinkType[]>>;
+  link: LinkType;
+  register: UseFormRegister<FormFields>;
+  remove: (index: number) => void;
+  update: (index: number, data: LinkType) => void;
 }) {
+  // ======= remove link from links =======
   const removeLinkFromUpdatedLinks = (index: number) => {
-    if (links && links.length) {
-      const updatedLinks = links.filter((_, i) => i !== index);
-      setLinks(updatedLinks);
-    } else {
-      return;
-    }
+    remove(index);
   };
   return (
     <div className="mb-6  h-[228px] w-full">
@@ -69,10 +69,10 @@ function LinkCard({
         {/* form */}
         <div className="flex-grow">
           <Select
+            {...register(`links.${index}.platform` as const)}
             label="Platform"
             placeholder={link.platform}
             labelPlacement="outside"
-            value={link.platform}
             classNames={{
               value: "opacity-75",
               label: "opacity-85 font-normal",
@@ -110,20 +110,15 @@ function LinkCard({
                 );
               });
             }}
-            onChange={(e: any) => {
-              if (!e.target.value) return;
-              const updatedLinks = links.map((l, i) =>
-                i === index
-                  ? {
-                      ...l,
-                      platform: platforms[e.target.value],
-                    }
-                  : l
-              );
-              setLinks(updatedLinks);
+            onChange={(e) => {
+              const selectedValue = Number(e.target.value);
+              update(index, {
+                ...link,
+                platform: platforms[selectedValue],
+              });
             }}
           >
-            {platforms.map((platform, index) => {
+            {platforms.map((platform: string, index: number) => {
               const IconComponentItems = iconComponents[platform] || null;
 
               return (
@@ -145,16 +140,17 @@ function LinkCard({
             })}
           </Select>
           <Input
+            {...register(`links.${index}.link` as const)}
             radius="sm"
             label="Link"
             labelPlacement={"outside"}
-            value={link.link}
-            onChange={(e) => {
-              const updatedLinks = links.map((l, i) =>
-                i === index ? { ...l, link: e.target.value } : l
-              );
-              setLinks(updatedLinks);
-            }}
+            defaultValue={link.link}
+            // onChange={(e) => {
+            //   const updatedLinks = links.map((l, i) =>
+            //     i === index ? { ...l, link: e.target.value } : l
+            //   );
+            //   setLinks(updatedLinks);
+            // }}
             type="text"
             placeholder={linkExamples[link.platform] || ""}
             startContent={

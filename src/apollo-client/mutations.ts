@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const UPDATE_USER = gql`
+export const UPDATE_USER_BY_PK = gql`
   mutation MyMutation(
     $id: Int!
     $lastname: String!
@@ -21,3 +21,9 @@ export const UPDATE_USER = gql`
     }
   }
 `;
+
+// export const UPDATE_LINKS_MANY = gql``;
+
+// export const DELETE_LINK_BY_PK = gql``;
+
+// export const INSERT_LINKS_ONE = gql``;
