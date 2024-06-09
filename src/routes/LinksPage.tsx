@@ -5,20 +5,34 @@ import { LinkType } from "../apollo-client/types";
 import LinkCard from "../components/LinkCard";
 import NoLinksCard from "../components/NoLinksCard";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
-// import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
-// import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+// import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
+// import { useState } from "react";
 
 const schema = z.object({
-  links: z.array(
-    z.object({
-      id: z.number(),
-      link: z.string().min(1),
-      platform: z.string().min(1),
-      user_id: z.number(),
-    })
-  ),
+  links: z
+    .array(
+      z.object({
+        id: z.number(),
+        link: z.string().min(1, "Can't be empty").url("Invalid URL"),
+        platform: z.string().min(1, "Can't be empty"),
+        user_id: z.number(),
+      })
+    )
+    .refine(
+      (links) => {
+        const platforms = links.map((link) => link.platform);
+        const uniquePlatforms = new Set(platforms);
+        return platforms.length === uniquePlatforms.size;
+      },
+      {
+        message: "One Link per platform is allowed",
+        path: [],
+      }
+    ),
 });
 
 // types
@@ -30,7 +44,6 @@ function LinksPage() {
   // const [upsertedLinks, setUpsertedLinks] = useState<LinkType[]>([]);
   // const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
 
-  // React hook form + zod
   const { register, handleSubmit, control, watch, formState } =
     useForm<FormFields>({
       resolver: zodResolver(schema),
@@ -38,13 +51,28 @@ function LinksPage() {
         links: User?.links || [],
       },
     });
-  const linksWatch = watch("links");
+
+  const linksWatch = watch("links", []);
   const { append, remove, update } = useFieldArray({
     control,
     name: "links",
   });
 
-  // functions
+  useEffect(() => {
+    formState.errors.links?.root?.message &&
+      toast(formState.errors.links?.root?.message, {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "red",
+        },
+      });
+  }, [formState.errors]);
+
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     // await new Promise((resolve) => setTimeout(resolve, 3000));

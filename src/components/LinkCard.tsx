@@ -42,9 +42,6 @@ function LinkCard({
     remove(index);
   };
 
-  formState.errors.links?.[index]?.platform &&
-    console.log(`${formState.errors.links?.[index]?.platform?.message}`);
-
   return (
     <div className="mb-6  h-[228px] w-full">
       <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
@@ -75,18 +72,14 @@ function LinkCard({
         <div className="flex-grow">
           <Select
             // div to show errors
-            // endContent={<div></div>}
-            {...register(
-              `links.${index}.platform` as const
-              // {
-              // validate: (value: string) => {
-              //   if (value === "") {
-              //     return "Platform is not valid";
-              //   }
-              //   return true;
-              // },
-              // }
-            )}
+            endContent={
+              formState.errors.links?.[index]?.platform ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {formState.errors.links?.[index]?.platform?.message}
+                </div>
+              ) : null
+            }
+            {...register(`links.${index}.platform` as const)}
             value={link.platform}
             label="Platform"
             placeholder={link.platform}
@@ -158,6 +151,14 @@ function LinkCard({
             })}
           </Select>
           <Input
+            // div to show errors
+            endContent={
+              formState.errors.links?.[index]?.link ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {formState.errors.links?.[index]?.link?.message}
+                </div>
+              ) : null
+            }
             {...register(`links.${index}.link` as const)}
             radius="sm"
             label="Link"
@@ -171,10 +172,13 @@ function LinkCard({
               </div>
             }
             classNames={{
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
               label: "opacity-85 font-normal",
-              input: "opacity-75",
+              inputWrapper: formState.errors.links?.[index]?.link
+                ? "border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              input: ` ${
+                formState.errors.links?.[index]?.link ? "text-red" : "text-gray"
+              }`,
             }}
           />
         </div>
