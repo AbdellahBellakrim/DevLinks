@@ -2,7 +2,7 @@ import { Input, Select, SelectItem, SelectSection } from "@nextui-org/react";
 import { platforms } from "../apollo-client/apollo-client";
 import { iconComponents } from "./SocialButton";
 import { LinkType } from "../apollo-client/types";
-import { UseFormRegister } from "react-hook-form";
+import { FormState, UseFormRegister } from "react-hook-form";
 import { FormFields } from "../routes/LinksPage";
 
 const linkExamples: any = {
@@ -28,17 +28,23 @@ function LinkCard({
   register,
   remove,
   update,
+  formState,
 }: {
   index: number;
   link: LinkType;
   register: UseFormRegister<FormFields>;
   remove: (index: number) => void;
   update: (index: number, data: LinkType) => void;
+  formState: FormState<FormFields>;
 }) {
   // ======= remove link from links =======
   const removeLinkFromUpdatedLinks = (index: number) => {
     remove(index);
   };
+
+  formState.errors.links?.[index]?.platform &&
+    console.log(`${formState.errors.links?.[index]?.platform?.message}`);
+
   return (
     <div className="mb-6  h-[228px] w-full">
       <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
@@ -66,10 +72,22 @@ function LinkCard({
             Remove
           </p>
         </div>
-        {/* form */}
         <div className="flex-grow">
           <Select
-            {...register(`links.${index}.platform` as const)}
+            // div to show errors
+            // endContent={<div></div>}
+            {...register(
+              `links.${index}.platform` as const
+              // {
+              // validate: (value: string) => {
+              //   if (value === "") {
+              //     return "Platform is not valid";
+              //   }
+              //   return true;
+              // },
+              // }
+            )}
+            value={link.platform}
             label="Platform"
             placeholder={link.platform}
             labelPlacement="outside"
@@ -145,12 +163,6 @@ function LinkCard({
             label="Link"
             labelPlacement={"outside"}
             defaultValue={link.link}
-            // onChange={(e) => {
-            //   const updatedLinks = links.map((l, i) =>
-            //     i === index ? { ...l, link: e.target.value } : l
-            //   );
-            //   setLinks(updatedLinks);
-            // }}
             type="text"
             placeholder={linkExamples[link.platform] || ""}
             startContent={

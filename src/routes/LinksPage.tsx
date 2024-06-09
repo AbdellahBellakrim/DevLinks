@@ -1,42 +1,43 @@
-import { useReactiveVar } from "@apollo/client";
+import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button } from "@nextui-org/react";
 import { userState } from "../apollo-client/apollo-client";
 import { LinkType } from "../apollo-client/types";
 import LinkCard from "../components/LinkCard";
 import NoLinksCard from "../components/NoLinksCard";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+// import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
+// import { useState } from "react";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const schema = z.object({
+  links: z.array(
+    z.object({
+      id: z.number(),
+      link: z.string().min(1),
+      platform: z.string().min(1),
+      user_id: z.number(),
+    })
+  ),
+});
 
 // types
-export interface FormFields {
-  links: LinkType[];
-}
-export const linkExamples: any = {
-  Github: "e.g. https://www.github.com/johnappleseed",
-  "Frontend Mentor": "e.g. https://www.frontendmentor.io/profile/johnappleseed",
-  Twitter: "e.g. https://www.twitter.com/johnappleseed",
-  Linkedin: "e.g. https://www.linkedin.com/in/johnappleseed",
-  Youtube: "e.g. https://www.youtube.com/johnappleseed",
-  Facebook: "e.g. https://www.facebook.com/johnappleseed",
-  Twitch: "e.g. https://www.twitch.tv/johnappleseed",
-  "Dev.to": "e.g. https://www.dev.to/johnappleseed",
-  Codewars: "e.g. https://www.codewars.com/users/johnappleseed",
-  Codepen: "e.g. https://codepen.io/johnappleseed",
-  freeCodeCamp: "e.g. https://www.freecodecamp.org/johnappleseed",
-  Gitlab: "e.g. https://gitlab.com/johnappleseed",
-  Hashnode: "e.g. https://hashnode.com/@johnappleseed",
-  "Stack Overflow": "e.g. https://stackoverflow.com/users/.../johnappleseed",
-};
+export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
-  // states
   let User = useReactiveVar(userState);
+  // const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
+  // const [upsertedLinks, setUpsertedLinks] = useState<LinkType[]>([]);
+  // const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
 
   // React hook form + zod
-  const { register, handleSubmit, control, watch } = useForm<FormFields>({
-    defaultValues: {
-      links: User?.links || [],
-    },
-  });
+  const { register, handleSubmit, control, watch, formState } =
+    useForm<FormFields>({
+      resolver: zodResolver(schema),
+      defaultValues: {
+        links: User?.links || [],
+      },
+    });
   const linksWatch = watch("links");
   const { append, remove, update } = useFieldArray({
     control,
@@ -45,8 +46,21 @@ function LinksPage() {
 
   // functions
   // ======= handle submit =======
-  const onSubmit: SubmitHandler<FormFields> = (data) => {
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    if (!User) return;
     console.log("data  :", data);
+    // const variables = {
+    //   objects: [
+    //     {
+    //       link: "done22",
+    //       platform: "te",
+    //       user_id: User.id,
+    //     },
+    //   ],
+    // };
+
+    // upsertOneLink({ variables });
   };
   // ======= handle add link =======
   const handleAddLink = () => {
@@ -85,6 +99,7 @@ function LinksPage() {
                   register={register}
                   remove={remove}
                   update={update}
+                  formState={formState}
                 />
               );
             })}
@@ -97,10 +112,11 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
+          disabled={formState.isSubmitting}
           type="submit"
           className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          Save
+          {formState.isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>

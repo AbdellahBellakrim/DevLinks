@@ -22,8 +22,21 @@ export const UPDATE_USER_BY_PK = gql`
   }
 `;
 
-// export const UPDATE_LINKS_MANY = gql``;
-
-// export const DELETE_LINK_BY_PK = gql``;
-
-// export const INSERT_LINKS_ONE = gql``;
+export const UPSERT_ONE_LINK = gql`
+  mutation UpsertDevlinksLink($objects: [devlinks_link_insert_input!]!) {
+    insert_devlinks_link(
+      objects: $objects
+      on_conflict: {
+        update_columns: [created_at, link, platform, updated_at, user_id]
+        constraint: link_pkey
+      }
+    ) {
+      returning {
+        id
+        link
+        platform
+        user_id
+      }
+    }
+  }
+`;
