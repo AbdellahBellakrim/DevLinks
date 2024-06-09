@@ -9,14 +9,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
-// import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
-// import { useState } from "react";
+import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
+import { useState } from "react";
 
 const schema = z.object({
   links: z
     .array(
       z.object({
-        id: z.number(),
+        id: z.number().optional(),
         link: z.string().min(1, "Can't be empty").url("Invalid URL"),
         platform: z.string().min(1, "Can't be empty"),
         user_id: z.number(),
@@ -35,13 +35,11 @@ const schema = z.object({
     ),
 });
 
-// types
 export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
   let User = useReactiveVar(userState);
-  // const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
-  // const [upsertedLinks, setUpsertedLinks] = useState<LinkType[]>([]);
+  const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
   // const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
 
   const { register, handleSubmit, control, watch, formState } =
@@ -75,27 +73,50 @@ function LinksPage() {
 
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
     if (!User) return;
-    console.log("data  :", data);
-    // const variables = {
-    //   objects: [
-    //     {
-    //       link: "done22",
-    //       platform: "te",
-    //       user_id: User.id,
-    //     },
-    //   ],
-    // };
-
-    // upsertOneLink({ variables });
+    if (JSON.stringify(data.links) === JSON.stringify(User.links)) {
+      toast.error("No changes detected", {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "red",
+        },
+      });
+      return;
+    }
+    data.links.forEach(async (link) => {
+      const variables = {
+        objects: [
+          {
+            id: link.id,
+            link: link.link,
+            platform: link.platform,
+            user_id: User.id,
+          },
+        ],
+      };
+      await upsertOneLink({ variables });
+    });
+    toast.success("Links saved successfully", {
+      position: "bottom-center",
+      duration: 2000,
+      style: {
+        width: "fit-content",
+        maxWidth: "406px",
+        padding: "16px 24px",
+        color: "#FAFAFA",
+        backgroundColor: "green",
+      },
+    });
   };
   // ======= handle add link =======
   const handleAddLink = () => {
     if (!User) return;
-    const highestId =
-      Math.max(...linksWatch.map((link: LinkType) => link.id)) + 1;
-    append({ platform: "", link: "", user_id: User.id, id: highestId });
+    append({ platform: "", link: "", user_id: User.id });
   };
   return (
     <form
@@ -121,7 +142,7 @@ function LinksPage() {
             {linksWatch.map((link: LinkType, index: number) => {
               return (
                 <LinkCard
-                  key={link.id}
+                  key={link.id || index}
                   index={index}
                   link={link}
                   register={register}

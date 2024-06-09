@@ -27,7 +27,7 @@ export const UPSERT_ONE_LINK = gql`
     insert_devlinks_link(
       objects: $objects
       on_conflict: {
-        update_columns: [created_at, link, platform, updated_at, user_id]
+        update_columns: [link, platform, updated_at]
         constraint: link_pkey
       }
     ) {

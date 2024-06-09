@@ -25,7 +25,21 @@ function DashboardLayout() {
         username: data.devlinks_user_by_pk.username,
         email: data.devlinks_user_by_pk.email,
         profile_picture: data.devlinks_user_by_pk.profile_picture,
-        links: data.devlinks_user_by_pk.links,
+        links: [
+          ...data.devlinks_user_by_pk.links.map(
+            ({
+              id,
+              link,
+              platform,
+              user_id,
+            }: {
+              id: number;
+              link: string;
+              platform: string;
+              user_id: number;
+            }) => ({ id, link, platform, user_id })
+          ),
+        ].sort((a, b) => a.id - b.id),
       });
     }
   }, [data]);

@@ -88,8 +88,10 @@ function LinkCard({
               value: "opacity-75",
               label: "opacity-85 font-normal",
               mainWrapper: "mb-6",
-              trigger:
-                "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+              trigger: formState.errors.links?.[index]?.platform
+                ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
+                : "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+
               popoverContent: "rounded-md mt-2",
             }}
             listboxProps={{
