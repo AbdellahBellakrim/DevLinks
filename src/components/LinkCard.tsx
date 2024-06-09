@@ -44,7 +44,7 @@ function LinkCard({
 
   return (
     <div className="mb-6  h-[228px] w-full">
-      <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
+      <div className="w-full h-[228px] bg-[#FAFAFA] rounded-xl p-5 flex flex-col">
         {/* card header */}
         <div className="w-full flex items-center justify-between mb-3">
           <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
@@ -89,7 +89,7 @@ function LinkCard({
               label: "opacity-85 font-normal",
               mainWrapper: "mb-6",
               trigger:
-                "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+                "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
               popoverContent: "rounded-md mt-2",
             }}
             listboxProps={{
@@ -174,8 +174,8 @@ function LinkCard({
             classNames={{
               label: "opacity-85 font-normal",
               inputWrapper: formState.errors.links?.[index]?.link
-                ? "border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
-                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+                ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
+                : "bg-white border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
               input: ` ${
                 formState.errors.links?.[index]?.link ? "text-red" : "text-gray"
               }`,
