@@ -44,7 +44,6 @@ function LinksPage() {
   let User = useReactiveVar(userState);
   const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
   const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
-
   const { register, handleSubmit, control, watch, formState } =
     useForm<FormFields>({
       resolver: zodResolver(schema),
@@ -77,33 +76,10 @@ function LinksPage() {
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     if (!User) return;
-    if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
-      data.links.forEach(async (link) => {
-        const variables = {
-          objects: [
-            {
-              id: link.id,
-              link: link.link,
-              platform: link.platform,
-              user_id: User.id,
-            },
-          ],
-        };
-        await upsertOneLink({ variables });
-      });
-    }
-    if (removedLinks.length > 0) {
-      try {
-        removedLinks.forEach(async (link) => {
-          await client.mutate({
-            mutation: DELETE_DEVLINKS_LINK,
-            variables: { id: link.id },
-          });
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    } else {
+    if (
+      removedLinks.length === 0 &&
+      JSON.stringify(data.links) === JSON.stringify(User.links)
+    ) {
       toast.error("No changes detected", {
         position: "bottom-center",
         duration: 2000,
@@ -117,8 +93,35 @@ function LinksPage() {
       });
       return;
     }
-
-    userState({ ...User, links: data.links });
+    if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
+      data.links.forEach((link, index) => {
+        if (JSON.stringify(link) === JSON.stringify(User.links[index])) return;
+        const variables = {
+          objects: [
+            {
+              id: link.id,
+              link: link.link,
+              platform: link.platform,
+              user_id: User.id,
+            },
+          ],
+        };
+        upsertOneLink({ variables });
+      });
+    }
+    if (removedLinks.length > 0) {
+      try {
+        removedLinks.forEach(async (link) => {
+          await client.mutate({
+            mutation: DELETE_DEVLINKS_LINK,
+            variables: { id: link.id },
+          });
+        });
+        setRemovedLinks([]);
+      } catch (error) {
+        console.error(error);
+      }
+    }
     toast.success("Links saved successfully", {
       position: "bottom-center",
       duration: 2000,
@@ -130,6 +133,7 @@ function LinksPage() {
         backgroundColor: "green",
       },
     });
+    await new Promise(() => setTimeout(() => window.location.reload(), 2000));
   };
   // ======= handle add link =======
   const handleAddLink = () => {

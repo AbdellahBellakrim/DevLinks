@@ -121,7 +121,7 @@ function ProfilePage() {
         });
       }
       dataChangingState(false);
-      toast("Your changes have been successfully saved!", {
+      toast.success("Your changes have been successfully saved!", {
         position: "bottom-center",
         duration: 2000,
         style: {
@@ -129,7 +129,7 @@ function ProfilePage() {
           maxWidth: "406px",
           padding: "16px 24px",
           color: "#FAFAFA",
-          backgroundColor: "#333333",
+          backgroundColor: "green",
         },
       });
     }

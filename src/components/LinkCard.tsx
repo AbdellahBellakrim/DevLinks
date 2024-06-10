@@ -44,7 +44,7 @@ function LinkCard({
   // ======= remove link from links =======
   const removeLinkFromUpdatedLinks = (index: number) => {
     remove(index);
-    setRemovedLinks([...removedLinks, link]);
+    if (link.id) setRemovedLinks([...removedLinks, link]);
   };
 
   return (
