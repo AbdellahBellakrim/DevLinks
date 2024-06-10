@@ -1,7 +1,8 @@
 export type LinkType = {
+  id?: number;
   link: string;
   platform: string;
-  id: number;
+  user_id: number;
 };
 
 export type userType = {
@@ -12,4 +13,22 @@ export type userType = {
   email: string;
   profile_picture: string | null;
   links: LinkType[];
+};
+
+export type previewUserType = {
+  firstname: string;
+  lastname: string;
+  email: string;
+  profile_picture: string;
+  links: {
+    id: number;
+    link: string;
+    platform: string;
+  }[];
+};
+
+export type previewLinkType = {
+  link: string;
+  platform: string;
+  id: number;
 };

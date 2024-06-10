@@ -1,26 +1,150 @@
-import { useReactiveVar } from "@apollo/client";
-import { Button, Input, Select, SelectItem } from "@nextui-org/react";
-import { useEffect, useState } from "react";
-import { userState } from "../apollo-client/apollo-client";
-import { platforms } from "../apollo-client/apollo-client";
+import { useMutation, useReactiveVar } from "@apollo/client";
+import { Button } from "@nextui-org/react";
+import client, { userState } from "../apollo-client/apollo-client";
 import { LinkType } from "../apollo-client/types";
+import LinkCard from "../components/LinkCard";
+import NoLinksCard from "../components/NoLinksCard";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+import {
+  DELETE_DEVLINKS_LINK,
+  UPSERT_ONE_LINK,
+} from "../apollo-client/mutations";
+import { useState } from "react";
+
+const schema = z.object({
+  links: z
+    .array(
+      z.object({
+        id: z.number().optional(),
+        link: z.string().min(1, "Can't be empty").url("Invalid URL"),
+        platform: z.string().min(1, "Can't be empty"),
+        user_id: z.number(),
+      })
+    )
+    .refine(
+      (links) => {
+        const platforms = links.map((link) => link.platform);
+        const uniquePlatforms = new Set(platforms);
+        return platforms.length === uniquePlatforms.size;
+      },
+      {
+        message: "One Link per platform is allowed",
+        path: [],
+      }
+    ),
+});
+
+export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
-  const User = useReactiveVar(userState);
-  const [UpdatedLinks, setUpdatedLinks] = useState<LinkType[]>([]);
+  let User = useReactiveVar(userState);
+  const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
+  const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
+  const { register, handleSubmit, control, watch, formState } =
+    useForm<FormFields>({
+      resolver: zodResolver(schema),
+      defaultValues: {
+        links: User?.links || [],
+      },
+    });
+
+  const linksWatch = watch("links", []);
+  const { append, remove, update } = useFieldArray({
+    control,
+    name: "links",
+  });
 
   useEffect(() => {
-    if (User) {
-      setUpdatedLinks(User.links);
+    formState.errors.links?.root?.message &&
+      toast(formState.errors.links?.root?.message, {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "red",
+        },
+      });
+  }, [formState.errors]);
+
+  // ======= handle submit =======
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    if (!User) return;
+    if (
+      removedLinks.length === 0 &&
+      JSON.stringify(data.links) === JSON.stringify(User.links)
+    ) {
+      toast.error("No changes detected", {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "red",
+        },
+      });
+      return;
     }
-  }, [User]);
-
-  const removeLinkFromUpdatedLinks = (index: number) => {
-    setUpdatedLinks((prev) => prev.filter((_, i) => i !== index));
+    if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
+      data.links.forEach((link, index) => {
+        if (JSON.stringify(link) === JSON.stringify(User.links[index])) return;
+        const variables = {
+          objects: [
+            {
+              id: link.id,
+              link: link.link,
+              platform: link.platform,
+              user_id: User.id,
+            },
+          ],
+        };
+        upsertOneLink({ variables });
+      });
+    }
+    if (removedLinks.length > 0) {
+      try {
+        removedLinks.forEach(async (link) => {
+          await client.mutate({
+            mutation: DELETE_DEVLINKS_LINK,
+            variables: { id: link.id },
+          });
+        });
+        setRemovedLinks([]);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    toast.success("Links saved successfully", {
+      position: "bottom-center",
+      duration: 2000,
+      style: {
+        width: "fit-content",
+        maxWidth: "406px",
+        padding: "16px 24px",
+        color: "#FAFAFA",
+        backgroundColor: "green",
+      },
+    });
+    await new Promise(() => setTimeout(() => window.location.reload(), 2000));
   };
-
+  // ======= handle add link =======
+  const handleAddLink = () => {
+    if (!User) return;
+    append({ platform: "", link: "", user_id: User.id });
+  };
   return (
-    <div className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md">
+    <form
+      className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <h1 className="font-bold text-3xl mb-3">Customize your links</h1>
       <p className="font-normal text-sm text-[#737373] mb-8">
         Add/edit/remove links below and then share all your profiles with the
@@ -28,138 +152,47 @@ function LinksPage() {
       </p>
       {/* add new link button */}
       <div
-        onClick={() => {}}
+        onClick={handleAddLink}
         className="border-1 border-[#633CFF] font-medium text-sm text-[#633CFF] rounded-md  flex items-center justify-center px-4 sm:px-6 py-3 gap-1 cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10 mb-8"
       >
         + Add new Link
       </div>
-      {UpdatedLinks.length > 0 && (
+      {linksWatch.length > 0 && (
         <div className="mb-6 flex-grow border-b border-divider">
           <div className="h-[480px] overflow-y-auto no-scrollbar">
-            {/* each link div */}
-            {UpdatedLinks.map((link, index: number) => (
-              <div className="mb-6  h-[228px] w-full" key={link.id}>
-                <div className="w-full h-[228px] bg-[#FAFAFA] border border-divider rounded-xl p-5 flex flex-col">
-                  {/* card header */}
-                  <div className="w-full flex items-center justify-between mb-3">
-                    <div className="flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing">
-                      <div className="w-fit h-fit bg-white bg-opacity-5">
-                        <img
-                          className="bg-white bg-opacity-5 z-0"
-                          src="icon-drag-and-drop.svg"
-                          alt="icon-drag-and-drop.svg"
-                          loading="lazy"
-                          width={12}
-                          height={6}
-                        />
-                      </div>
-                      <p className="text-[#737373] font-semibold text-lg">{`Link #${
-                        index + 1
-                      }`}</p>
-                    </div>
-                    <p
-                      className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
-                      onClick={() => removeLinkFromUpdatedLinks(index)}
-                    >
-                      Remove
-                    </p>
-                  </div>
-                  {/* form */}
-                  <div className="flex-grow">
-                    <Select
-                      label="Platform"
-                      placeholder={link.platform}
-                      labelPlacement="outside"
-                      classNames={{
-                        value: "opacity-75",
-                        label: "opacity-85 font-normal",
-                        mainWrapper: "mb-6",
-                        trigger:
-                          "border border-[#E0E0E0]  rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
-                        popoverContent: "rounded-md mt-2",
-                      }}
-                      listboxProps={{
-                        itemClasses: {
-                          base: [
-                            "rounded-md",
-                            "text-default-500",
-                            "transition-opacity",
-                            "data-[hover=true]:bg-default-100",
-                            "data-[selectable=true]:focus:bg-default-50",
-                            "data-[selectable=true]:focus:text-[#633CFF]",
-                            "data-[pressed=true]:opacity-70",
-                            "data-[focus-visible=true]:ring-default-500",
-                          ],
-                        },
-                      }}
-                    >
-                      {platforms.map((platform, index) => (
-                        <SelectItem
-                          key={index}
-                          className="border-b border-divider rounded-none text-[#737373]"
-                        >
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </Select>
-                    <Input
-                      radius="sm"
-                      label="Link"
-                      labelPlacement={"outside"}
-                      type="text"
-                      placeholder={"e.g. https://www.github.com/johnappleseed"}
-                      startContent={
-                        <div>
-                          <img src="/icon-links-header.svg" alt="link img" />
-                        </div>
-                      }
-                      classNames={{
-                        inputWrapper:
-                          "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
-                        label: "opacity-85 font-normal",
-                        input: "opacity-75",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+            {/* each link div : show links from links state*/}
+            {linksWatch.map((link: LinkType, index: number) => {
+              return (
+                <LinkCard
+                  key={link.id || index}
+                  index={index}
+                  link={link}
+                  register={register}
+                  remove={remove}
+                  update={update}
+                  formState={formState}
+                  removedLinks={removedLinks}
+                  setRemovedLinks={setRemovedLinks}
+                />
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* if there is no links component */}
-      {UpdatedLinks.length === 0 && (
-        <div className="w-full h-full bg-[#FAFAFA]   flex justify-center items-center flex-col p-5 shadow-sm flex-grow mb-6">
-          <div className="w-fit h-fit bg-white bg-opacity-5 mb-6">
-            <img
-              className="bg-white bg-opacity-5 min-w-8 min-h-8 z-0"
-              src="illustration-empty.svg"
-              alt="illustration-empty.svg"
-              loading="lazy"
-              width={250}
-              height={160}
-            />
-          </div>
-          <div className="max-w-[488px] flex flex-col justify-center items-center gap-6">
-            <h3 className="text-2xl font-semibold text-blac">{`Let’s get you started`}</h3>
-            <p className="font-normal text-[#737373] text-md">
-              {`Use the “Add new link” button to get started. Once you have more
-            than one link, you can reorder and edit them. We’re here to help you
-            share your profiles with everyone!`}
-            </p>
-          </div>
-        </div>
-      )}
+      {User && linksWatch.length === 0 && <NoLinksCard />}
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
+          disabled={formState.isSubmitting}
+          type="submit"
           className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          Save
+          {formState.isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 

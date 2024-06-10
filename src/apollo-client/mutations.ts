@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const UPDATE_USER = gql`
+export const UPDATE_USER_BY_PK = gql`
   mutation MyMutation(
     $id: Int!
     $lastname: String!
@@ -17,6 +17,33 @@ export const UPDATE_USER = gql`
         profile_picture: $profile_picture
       }
     ) {
+      id
+    }
+  }
+`;
+
+export const UPSERT_ONE_LINK = gql`
+  mutation UpsertDevlinksLink($objects: [devlinks_link_insert_input!]!) {
+    insert_devlinks_link(
+      objects: $objects
+      on_conflict: {
+        update_columns: [link, platform, updated_at]
+        constraint: link_pkey
+      }
+    ) {
+      returning {
+        id
+        link
+        platform
+        user_id
+      }
+    }
+  }
+`;
+
+export const DELETE_DEVLINKS_LINK = gql`
+  mutation MyMutation($id: Int!) {
+    delete_devlinks_link_by_pk(id: $id) {
       id
     }
   }
