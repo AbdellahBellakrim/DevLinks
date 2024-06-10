@@ -1,6 +1,6 @@
 import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button } from "@nextui-org/react";
-import { userState } from "../apollo-client/apollo-client";
+import client, { userState } from "../apollo-client/apollo-client";
 import { LinkType } from "../apollo-client/types";
 import LinkCard from "../components/LinkCard";
 import NoLinksCard from "../components/NoLinksCard";
@@ -9,7 +9,10 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
-import { UPSERT_ONE_LINK } from "../apollo-client/mutations";
+import {
+  DELETE_DEVLINKS_LINK,
+  UPSERT_ONE_LINK,
+} from "../apollo-client/mutations";
 import { useState } from "react";
 
 const schema = z.object({
@@ -40,7 +43,7 @@ export type FormFields = z.infer<typeof schema>;
 function LinksPage() {
   let User = useReactiveVar(userState);
   const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
-  // const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
+  const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
 
   const { register, handleSubmit, control, watch, formState } =
     useForm<FormFields>({
@@ -74,7 +77,33 @@ function LinksPage() {
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
     if (!User) return;
-    if (JSON.stringify(data.links) === JSON.stringify(User.links)) {
+    if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
+      data.links.forEach(async (link) => {
+        const variables = {
+          objects: [
+            {
+              id: link.id,
+              link: link.link,
+              platform: link.platform,
+              user_id: User.id,
+            },
+          ],
+        };
+        await upsertOneLink({ variables });
+      });
+    }
+    if (removedLinks.length > 0) {
+      try {
+        removedLinks.forEach(async (link) => {
+          await client.mutate({
+            mutation: DELETE_DEVLINKS_LINK,
+            variables: { id: link.id },
+          });
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
       toast.error("No changes detected", {
         position: "bottom-center",
         duration: 2000,
@@ -88,19 +117,8 @@ function LinksPage() {
       });
       return;
     }
-    data.links.forEach(async (link) => {
-      const variables = {
-        objects: [
-          {
-            id: link.id,
-            link: link.link,
-            platform: link.platform,
-            user_id: User.id,
-          },
-        ],
-      };
-      await upsertOneLink({ variables });
-    });
+
+    userState({ ...User, links: data.links });
     toast.success("Links saved successfully", {
       position: "bottom-center",
       duration: 2000,
@@ -149,6 +167,8 @@ function LinksPage() {
                   remove={remove}
                   update={update}
                   formState={formState}
+                  removedLinks={removedLinks}
+                  setRemovedLinks={setRemovedLinks}
                 />
               );
             })}
