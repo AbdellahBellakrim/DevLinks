@@ -164,7 +164,7 @@ function LinksPage() {
             {linksWatch.map((link: LinkType, index: number) => {
               return (
                 <LinkCard
-                  key={link.id || index}
+                  key={link.id || Math.random()}
                   index={index}
                   link={link}
                   register={register}

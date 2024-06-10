@@ -38,11 +38,11 @@ function Mockup() {
               User.links.length > 0 &&
               User.links
                 .slice(0, 5)
-                .map((link: LinkType, index: number) => (
+                .map((link: LinkType) => (
                   <SocialButton
                     platform={link.platform}
                     link={link.link}
-                    key={link.id || index}
+                    key={link.id || Math.random()}
                     height="h-[44px]"
                   />
                 ))}
