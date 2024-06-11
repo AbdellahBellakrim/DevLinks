@@ -280,5 +280,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
-// ${linksNumber === 0 ? "opacity-40" : "opacity-100"}

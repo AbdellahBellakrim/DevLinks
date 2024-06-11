@@ -14,6 +14,7 @@ import {
   UPSERT_ONE_LINK,
 } from "../apollo-client/mutations";
 import { useState } from "react";
+import { GET_USER_BY_ID } from "../apollo-client/queries";
 
 const schema = z.object({
   links: z
@@ -94,19 +95,18 @@ function LinksPage() {
       return;
     }
     if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
-      data.links.forEach((link, index) => {
-        if (JSON.stringify(link) === JSON.stringify(User.links[index])) return;
-        const variables = {
-          objects: [
-            {
-              id: link.id,
-              link: link.link,
-              platform: link.platform,
-              user_id: User.id,
-            },
-          ],
-        };
-        upsertOneLink({ variables });
+      const variables = {
+        objects: data.links.map((link) => ({
+          id: link.id,
+          link: link.link,
+          platform: link.platform,
+          user_id: User.id,
+        })),
+      };
+      upsertOneLink({
+        variables,
+        refetchQueries: [GET_USER_BY_ID],
+        awaitRefetchQueries: true,
       });
     }
     if (removedLinks.length > 0) {
@@ -115,6 +115,8 @@ function LinksPage() {
           await client.mutate({
             mutation: DELETE_DEVLINKS_LINK,
             variables: { id: link.id },
+            refetchQueries: [GET_USER_BY_ID],
+            awaitRefetchQueries: true,
           });
         });
         setRemovedLinks([]);
@@ -133,7 +135,6 @@ function LinksPage() {
         backgroundColor: "green",
       },
     });
-    await new Promise(() => setTimeout(() => window.location.reload(), 2000));
   };
   // ======= handle add link =======
   const handleAddLink = () => {
