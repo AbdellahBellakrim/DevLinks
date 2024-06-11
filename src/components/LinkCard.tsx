@@ -2,7 +2,12 @@ import { Input, Select, SelectItem, SelectSection } from "@nextui-org/react";
 import { platforms } from "../apollo-client/apollo-client";
 import { iconComponents } from "./SocialButton";
 import { LinkType } from "../apollo-client/types";
-import { FormState, UseFormRegister } from "react-hook-form";
+import {
+  FormState,
+  UseFieldArrayRemove,
+  UseFieldArrayUpdate,
+  UseFormRegister,
+} from "react-hook-form";
 import { FormFields } from "../routes/LinksPage";
 
 const linkExamples: any = {
@@ -35,8 +40,18 @@ function LinkCard({
   index: number;
   link: LinkType;
   register: UseFormRegister<FormFields>;
-  remove: (index: number) => void;
-  update: (index: number, data: LinkType) => void;
+  remove: UseFieldArrayRemove;
+  update: UseFieldArrayUpdate<
+    {
+      links: {
+        link: string;
+        id: number;
+        platform: string;
+        user_id: number;
+      }[];
+    },
+    "links"
+  >;
   formState: FormState<FormFields>;
   removedLinks: LinkType[];
   setRemovedLinks: React.Dispatch<React.SetStateAction<LinkType[]>>;
@@ -44,7 +59,7 @@ function LinkCard({
   // ======= remove link from links =======
   const removeLinkFromUpdatedLinks = (index: number) => {
     remove(index);
-    if (link.id) setRemovedLinks([...removedLinks, link]);
+    setRemovedLinks([...removedLinks, link]);
   };
 
   return (
