@@ -20,7 +20,7 @@ const schema = z.object({
   links: z
     .array(
       z.object({
-        id: z.number().optional(),
+        id: z.number(),
         link: z.string().min(1, "Can't be empty").url("Invalid URL"),
         platform: z.string().min(1, "Can't be empty"),
         user_id: z.number(),
@@ -139,7 +139,9 @@ function LinksPage() {
   // ======= handle add link =======
   const handleAddLink = () => {
     if (!User) return;
-    append({ platform: "", link: "", user_id: User.id });
+    const highestId =
+      Math.max(...linksWatch.map((link: LinkType) => link.id)) + 1;
+    append({ platform: "", link: "", user_id: User.id, id: highestId });
   };
   return (
     <form
@@ -165,7 +167,7 @@ function LinksPage() {
             {linksWatch.map((link: LinkType, index: number) => {
               return (
                 <LinkCard
-                  key={link.id || Math.random()}
+                  key={link.id}
                   index={index}
                   link={link}
                   register={register}

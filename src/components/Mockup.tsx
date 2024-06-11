@@ -42,7 +42,7 @@ function Mockup() {
                   <SocialButton
                     platform={link.platform}
                     link={link.link}
-                    key={link.id || Math.random()}
+                    key={link.id}
                     height="h-[44px]"
                   />
                 ))}
