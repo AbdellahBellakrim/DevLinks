@@ -34,8 +34,6 @@ function LinkCard({
   remove,
   update,
   formState,
-  removedLinks,
-  setRemovedLinks,
 }: {
   index: number;
   link: LinkType;
@@ -53,13 +51,10 @@ function LinkCard({
     "links"
   >;
   formState: FormState<FormFields>;
-  removedLinks: LinkType[];
-  setRemovedLinks: React.Dispatch<React.SetStateAction<LinkType[]>>;
 }) {
   // ======= remove link from links =======
   const removeLinkFromUpdatedLinks = (index: number) => {
     remove(index);
-    setRemovedLinks([...removedLinks, link]);
   };
 
   return (

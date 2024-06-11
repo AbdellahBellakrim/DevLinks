@@ -13,7 +13,6 @@ import {
   DELETE_DEVLINKS_LINKS,
   UPSERT_ONE_LINK,
 } from "../apollo-client/mutations";
-import { useState } from "react";
 import { GET_USER_BY_ID } from "../apollo-client/queries";
 
 const schema = z.object({
@@ -45,7 +44,6 @@ function LinksPage() {
   let User = useReactiveVar(userState);
   const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
   const [deleteLinks] = useMutation(DELETE_DEVLINKS_LINKS);
-  const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
   const { register, handleSubmit, control, watch, formState } =
     useForm<FormFields>({
       resolver: zodResolver(schema),
@@ -92,23 +90,42 @@ function LinksPage() {
       });
       return;
     }
+    const initialLinks = new Set(User.links.map((link) => link));
+    const currentLinks = new Set(data.links.map((link) => link));
 
-    // console.log("upserting links");
-    const variables = {
-      objects: data.links.map((link) => ({
-        id: link.id,
-        link: link.link,
-        platform: link.platform,
-        user_id: User.id,
-      })),
-    };
-    upsertOneLink({
-      variables,
-      refetchQueries: [GET_USER_BY_ID],
-      awaitRefetchQueries: true,
+    const removedLinks = [...initialLinks].filter((link) => {
+      const currentLink = [...currentLinks].find(
+        (CurrentLink) => CurrentLink.id === link.id
+      );
+      return !currentLink;
     });
+    const upsertedLinks = [...currentLinks].filter((link) => {
+      if (!initialLinks.has(link)) return true;
+      else {
+        const initialLink = [...initialLinks].find(
+          (initialLink) => initialLink.id === link.id
+        );
+        return initialLink !== link;
+      }
+    });
+
+    if (upsertedLinks.length > 0) {
+      const variables = {
+        objects: upsertedLinks.map((link) => ({
+          id: link.id,
+          link: link.link,
+          platform: link.platform,
+          user_id: User.id,
+        })),
+      };
+      upsertOneLink({
+        variables,
+        refetchQueries: [GET_USER_BY_ID],
+        awaitRefetchQueries: true,
+      });
+    }
+
     if (removedLinks.length > 0) {
-      // console.log("deleting links");
       const Ids: number[] = [];
       removedLinks.map(async (link) => {
         Ids.push(link.id);
@@ -118,7 +135,6 @@ function LinksPage() {
         refetchQueries: [GET_USER_BY_ID],
         awaitRefetchQueries: true,
       });
-      setRemovedLinks([]);
     }
     toast.success("Links saved successfully", {
       position: "bottom-center",
@@ -174,8 +190,6 @@ function LinksPage() {
                   remove={remove}
                   update={update}
                   formState={formState}
-                  removedLinks={removedLinks}
-                  setRemovedLinks={setRemovedLinks}
                 />
               );
             })}
