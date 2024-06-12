@@ -1,25 +1,42 @@
 import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button, Input } from "@nextui-org/react";
-import { dataChangingState, userState } from "../apollo-client/apollo-client";
+import { userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
 import { UPDATE_USER_BY_PK } from "../apollo-client/mutations";
-import { userType } from "../apollo-client/types";
 import toast from "react-hot-toast";
+import { z } from "zod";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const schema = z.object({
+  firstname: z
+    .string()
+    .min(1, "Can't be empty")
+    .max(50, "Too long!")
+    .regex(/^[a-zA-Z\s-']+$/, "Invalid first name!")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+  lastname: z
+    .string()
+    .min(1, "Can't be empty")
+    .max(50, "Too long!")
+    .regex(/^[a-zA-Z\s-']+$/, "Invalid last name!")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+});
+
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
+const CLOUDINARY_ENDPOINT = import.meta.env.VITE_CLOUDINARY_ENDPOINT;
 
 function ProfilePage() {
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
     window.innerWidth < 640
   );
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-
-  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
-  const CLOUDINARY_ENDPOINT = import.meta.env.VITE_CLOUDINARY_ENDPOINT;
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
@@ -35,93 +52,31 @@ function ProfilePage() {
   // get the update user mutation
   const [updateUser] = useMutation(UPDATE_USER_BY_PK);
 
+  type FormFields = z.infer<typeof schema>;
+
+  const { register, handleSubmit, formState } = useForm<FormFields>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      firstname: User?.firstname || "",
+      lastname: User?.lastname || "",
+      email: User?.email || "",
+    },
+  });
+
   useEffect(() => {
     if (User) {
       setImagePreview(User.profile_picture);
     }
   }, [User]);
 
-  useEffect(() => {
-    setFirstName(User?.firstname || "");
-    setLastName(User?.lastname || "");
-    setEmail(User?.email || "");
-  }, [User]);
-
   const handleDivClick = () => {
     document.getElementById("file-input")?.click();
   };
 
-  const handleFileChange = (e: any) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setSelectedImage(file);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSave = async () => {
-    if (
-      selectedImage ||
-      ((firstName !== User?.firstname ||
-        lastName !== User?.lastname ||
-        email !== User?.email) &&
-        firstName !== "" &&
-        lastName !== "" &&
-        email !== "")
-    ) {
-      dataChangingState(true);
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append("file", selectedImage);
-        formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-        formData.append("upload_preset", CLOUDINARY_PRESET);
-
-        const response = await fetch(CLOUDINARY_ENDPOINT, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-        setImagePreview(data.secure_url);
-        userState({
-          ...User,
-          profile_picture: data.secure_url,
-          firstname: firstName,
-          lastname: lastName,
-          email: email,
-        } as userType);
-        updateUser({
-          variables: {
-            id: User?.id,
-            lastname: lastName,
-            email: email,
-            firstname: firstName,
-            profile_picture: data.secure_url,
-          },
-        });
-      } else {
-        userState({
-          ...User,
-          firstname: firstName,
-          lastname: lastName,
-          email: email,
-        } as userType);
-        updateUser({
-          variables: {
-            id: User?.id,
-            lastname: lastName,
-            email: email,
-            firstname: firstName,
-            profile_picture: User?.profile_picture,
-          },
-        });
-      }
-      dataChangingState(false);
-      toast.success("Your changes have been successfully saved!", {
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    if (!User) return;
+    if (!formState.isDirty && !imageFile) {
+      toast.error("No changes detected!", {
         position: "bottom-center",
         duration: 2000,
         style: {
@@ -129,14 +84,47 @@ function ProfilePage() {
           maxWidth: "406px",
           padding: "16px 24px",
           color: "#FAFAFA",
-          backgroundColor: "green",
+          backgroundColor: "red",
         },
       });
+      return;
     }
+    // if (imageFile) {
+    //   const formData = new FormData();
+    //   formData.append("file", imageFile);
+    //   formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+    //   formData.append("upload_preset", CLOUDINARY_PRESET);
+
+    //   const response = await fetch(CLOUDINARY_ENDPOINT, {
+    //     method: "POST",
+    //     body: formData,
+    //   });
+
+    //   const data = await response.json();
+    //   data.secure_url &&
+    //     userState({
+    //       ...User,
+    //       profile_picture: data.secure_url,
+    //     });
+    // }
+    toast.success("Your changes have been successfully saved!", {
+      position: "bottom-center",
+      duration: 2000,
+      style: {
+        width: "fit-content",
+        maxWidth: "406px",
+        padding: "16px 24px",
+        color: "#FAFAFA",
+        backgroundColor: "green",
+      },
+    });
   };
 
   return (
-    <div className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md"
+    >
       <h1 className="font-bold text-3xl mb-3">Profile Details</h1>
       <p className="font-normal text-sm text-[#737373] mb-8">
         Add your details to create a personal touch to your profile.
@@ -154,9 +142,36 @@ function ProfilePage() {
             <input
               id="file-input"
               type="file"
-              accept="image/*"
+              accept=".png, .jpg"
               style={{ display: "none" }}
-              onChange={handleFileChange}
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setImagePreview(reader.result as string);
+                    User &&
+                      userState({
+                        ...User,
+                        profile_picture: reader.result as string,
+                      });
+                  };
+                  reader.readAsDataURL(file);
+                  setImageFile(file);
+                  // const formData = new FormData();
+                  // formData.append("file", file);
+                  // formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+                  // formData.append("upload_preset", CLOUDINARY_PRESET);
+
+                  // const response = await fetch(CLOUDINARY_ENDPOINT, {
+                  //   method: "POST",
+                  //   body: formData,
+                  // });
+
+                  // const data = await response.json();
+                  // setImagePreview(data.secure_url);
+                }
+              }}
             />
             {imagePreview === null ? (
               <>
@@ -205,77 +220,98 @@ function ProfilePage() {
             Image must be below 1024x1024px. Use PNG or JPG format.
           </p>
         </div>
-        {/* second container (form) */}
-        <form className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
+        {/* second container */}
+        <div className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
           <Input
-            onChange={(e) => setFirstName(e.target.value)}
+            // div to show errors
+            endContent={
+              formState.errors.firstname ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {formState.errors.firstname.message}
+                </div>
+              ) : null
+            }
+            {...register("firstname")}
             radius="sm"
-            value={firstName}
             label="First name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
             placeholder={"e.g. John"}
-            isRequired
             classNames={{
               base: "text-[#737373]",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: formState.errors.firstname
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
-            onChange={(e) => setLastName(e.target.value)}
-            value={lastName}
+            // div to show errors
+            endContent={
+              formState.errors.lastname ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {formState.errors.lastname.message}
+                </div>
+              ) : null
+            }
+            {...register("lastname")}
             radius="sm"
             label="Last name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
             placeholder={"Wright"}
-            isRequired
             classNames={{
               base: "text-[#737373]",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: formState.errors.lastname
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
+            // div to show errors
+            endContent={
+              formState.errors.email ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {formState.errors.email.message}
+                </div>
+              ) : null
+            }
+            {...register("email")}
             radius="sm"
             label="Email"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
-            type="email"
+            type="text"
             placeholder={"ben@example.com"}
-            isRequired
             classNames={{
               base: "text-[#737373] z-0",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: formState.errors.email
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
-        </form>
+        </div>
       </div>
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          onClick={handleSave}
+          type="submit"
           className={`rounded-md bg-[#633CFF] text-white w-full sm:w-auto`}
         >
           Save
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 
