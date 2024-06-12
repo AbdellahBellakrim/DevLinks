@@ -14,12 +14,13 @@ import {
   UPSERT_ONE_LINK,
 } from "../apollo-client/mutations";
 import { GET_USER_BY_ID } from "../apollo-client/queries";
+import { v4 as uuidv4 } from "uuid";
 
 const schema = z.object({
   links: z
     .array(
       z.object({
-        id: z.number(),
+        id: z.union([z.number(), z.string()]),
         link: z.string().min(1, "Can't be empty").url("Invalid URL"),
         platform: z.string().min(1, "Can't be empty"),
         user_id: z.number(),
@@ -41,10 +42,10 @@ const schema = z.object({
 export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
-  let User = useReactiveVar(userState);
+  const User = useReactiveVar(userState);
   const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
   const [deleteLinks] = useMutation(DELETE_DEVLINKS_LINKS);
-  const { register, handleSubmit, control, watch, formState } =
+  const { register, handleSubmit, control, formState, watch, reset } =
     useForm<FormFields>({
       resolver: zodResolver(schema),
       defaultValues: {
@@ -52,7 +53,8 @@ function LinksPage() {
       },
     });
 
-  const linksWatch = watch("links", []);
+  const linksWatch = watch("links");
+
   const { append, remove, update } = useFieldArray({
     control,
     name: "links",
@@ -73,10 +75,14 @@ function LinksPage() {
       });
   }, [formState.errors]);
 
+  useEffect(() => {
+    reset({ links: User?.links }, { keepDirty: false });
+  }, [User?.links]);
+
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = (data) => {
     if (!User) return;
-    if (JSON.stringify(data.links) === JSON.stringify(User.links)) {
+    if (!formState.isDirty) {
       toast.error("No changes detected", {
         position: "bottom-center",
         duration: 2000,
@@ -112,7 +118,7 @@ function LinksPage() {
     if (upsertedLinks.length > 0) {
       const variables = {
         objects: upsertedLinks.map((link) => ({
-          id: link.id,
+          id: typeof link.id === "string" ? undefined : link.id,
           link: link.link,
           platform: link.platform,
           user_id: User.id,
@@ -128,7 +134,7 @@ function LinksPage() {
     if (removedLinks.length > 0) {
       const Ids: number[] = [];
       removedLinks.map(async (link) => {
-        Ids.push(link.id);
+        typeof link.id === "number" && Ids.push(link.id);
       });
       deleteLinks({
         variables: { ids: Ids },
@@ -151,13 +157,7 @@ function LinksPage() {
   // ======= handle add link =======
   const handleAddLink = () => {
     if (!User) return;
-    if (linksWatch.length === 0) {
-      append({ platform: "", link: "", user_id: User.id, id: 0 });
-      return;
-    }
-    const highestId =
-      Math.max(...linksWatch.map((link: LinkType) => link.id)) + 1;
-    append({ platform: "", link: "", user_id: User.id, id: highestId });
+    append({ platform: "", link: "", user_id: User.id, id: uuidv4() });
   };
   return (
     <form

@@ -42,8 +42,8 @@ function LinkCard({
   update: UseFieldArrayUpdate<
     {
       links: {
+        id: string | number;
         link: string;
-        id: number;
         platform: string;
         user_id: number;
       }[];
