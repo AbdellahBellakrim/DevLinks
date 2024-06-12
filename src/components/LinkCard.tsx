@@ -197,6 +197,12 @@ function LinkCard({
                 formState.errors.links?.[index]?.link ? "text-red" : "text-gray"
               }`,
             }}
+            onChange={(e) => {
+              update(index, {
+                ...link,
+                link: e.target.value,
+              });
+            }}
           />
         </div>
       </div>
