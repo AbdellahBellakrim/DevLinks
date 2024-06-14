@@ -1,5 +1,5 @@
 export type LinkType = {
-  id: number | string;
+  id?: number;
   link: string;
   platform: string;
   user_id: number;

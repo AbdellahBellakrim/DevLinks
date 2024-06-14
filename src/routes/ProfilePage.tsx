@@ -25,6 +25,7 @@ const schema = z.object({
     .string()
     .email("Invalid email address")
     .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+  // profilePicture: z.instanceof(File).optional().refine((val) => {}),
 });
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -89,23 +90,20 @@ function ProfilePage() {
       });
       return;
     }
+
     // if (imageFile) {
-    //   const formData = new FormData();
-    //   formData.append("file", imageFile);
-    //   formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-    //   formData.append("upload_preset", CLOUDINARY_PRESET);
+    // const formData = new FormData();
+    // formData.append("file", file);
+    // formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+    // formData.append("upload_preset", CLOUDINARY_PRESET);
 
-    //   const response = await fetch(CLOUDINARY_ENDPOINT, {
-    //     method: "POST",
-    //     body: formData,
-    //   });
+    // const response = await fetch(CLOUDINARY_ENDPOINT, {
+    //   method: "POST",
+    //   body: formData,
+    // });
 
-    //   const data = await response.json();
-    //   data.secure_url &&
-    //     userState({
-    //       ...User,
-    //       profile_picture: data.secure_url,
-    //     });
+    // const data = await response.json();
+    // setImagePreview(data.secure_url);
     // }
     toast.success("Your changes have been successfully saved!", {
       position: "bottom-center",
@@ -147,6 +145,24 @@ function ProfilePage() {
               onChange={(e) => {
                 const file = e.target.files?.[0] || null;
                 if (file) {
+                  const validImageTypes = ["image/jpeg", "image/png"];
+                  if (!validImageTypes.includes(file.type)) {
+                    toast.error(
+                      "Please upload a file with a valid image format (PNG or JPG).",
+                      {
+                        position: "bottom-center",
+                        duration: 2000,
+                        style: {
+                          width: "fit-content",
+                          maxWidth: "406px",
+                          padding: "16px 24px",
+                          color: "#FAFAFA",
+                          backgroundColor: "red",
+                        },
+                      }
+                    );
+                    return;
+                  }
                   const reader = new FileReader();
                   reader.onloadend = () => {
                     setImagePreview(reader.result as string);
@@ -158,18 +174,6 @@ function ProfilePage() {
                   };
                   reader.readAsDataURL(file);
                   setImageFile(file);
-                  // const formData = new FormData();
-                  // formData.append("file", file);
-                  // formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-                  // formData.append("upload_preset", CLOUDINARY_PRESET);
-
-                  // const response = await fetch(CLOUDINARY_ENDPOINT, {
-                  //   method: "POST",
-                  //   body: formData,
-                  // });
-
-                  // const data = await response.json();
-                  // setImagePreview(data.secure_url);
                 }
               }}
             />
