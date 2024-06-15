@@ -4,7 +4,7 @@ import { iconComponents } from "./SocialButton";
 import {
   Control,
   Controller,
-  FormState,
+  FieldErrors,
   UseFieldArrayRemove,
 } from "react-hook-form";
 import { LinkType } from "../apollo-client/types";
@@ -31,7 +31,7 @@ function LinkCard({
   index,
   link,
   remove,
-  formState,
+  errors,
 }: {
   control: Control<
     {
@@ -47,7 +47,7 @@ function LinkCard({
   index: number;
   link: LinkType;
   remove: UseFieldArrayRemove;
-  formState: FormState<{
+  errors: FieldErrors<{
     links: {
       link: string;
       platform: string;
@@ -91,11 +91,12 @@ function LinkCard({
             name={`links.${index}.platform` as const}
             render={({ field }) => (
               <Select
+                {...field}
                 // div to show errors
                 endContent={
-                  formState.errors.links?.[index]?.platform ? (
+                  errors.links?.[index]?.platform ? (
                     <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                      {formState.errors.links?.[index]?.platform?.message}
+                      {errors.links?.[index]?.platform?.message}
                     </div>
                   ) : null
                 }
@@ -107,7 +108,7 @@ function LinkCard({
                   value: "opacity-75",
                   label: "opacity-85 font-normal",
                   mainWrapper: "mb-6",
-                  trigger: formState.errors.links?.[index]?.platform
+                  trigger: errors.links?.[index]?.platform
                     ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
                     : "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
 
@@ -175,10 +176,11 @@ function LinkCard({
             name={`links.${index}.link` as const}
             render={({ field }) => (
               <Input
+                {...field}
                 endContent={
-                  formState.errors.links?.[index]?.link ? (
+                  errors.links?.[index]?.link ? (
                     <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                      {formState.errors.links?.[index]?.link?.message}
+                      {errors.links?.[index]?.link?.message}
                     </div>
                   ) : null
                 }
@@ -195,13 +197,11 @@ function LinkCard({
                 }
                 classNames={{
                   label: "opacity-85 font-normal",
-                  inputWrapper: formState.errors.links?.[index]?.link
+                  inputWrapper: errors.links?.[index]?.link
                     ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
                     : "bg-white border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
                   input: ` ${
-                    formState.errors.links?.[index]?.link
-                      ? "text-red"
-                      : "text-gray"
+                    errors.links?.[index]?.link ? "text-red" : "text-gray"
                   }`,
                 }}
                 onChange={(e) => {

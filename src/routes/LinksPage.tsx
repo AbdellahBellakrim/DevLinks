@@ -54,7 +54,12 @@ function LinksPage() {
     awaitRefetchQueries: true,
   });
 
-  const { handleSubmit, control, formState, reset } = useForm<FormFields>({
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isDirty, isSubmitting },
+    reset,
+  } = useForm<FormFields>({
     resolver: zodResolver(schema),
     defaultValues: {
       links: User?.links || [],
@@ -67,8 +72,8 @@ function LinksPage() {
   });
 
   useEffect(() => {
-    formState.errors.links?.root?.message &&
-      toast(formState.errors.links?.root?.message, {
+    errors.links?.root?.message &&
+      toast(errors.links?.root?.message, {
         position: "bottom-center",
         duration: 2000,
         style: {
@@ -79,46 +84,13 @@ function LinksPage() {
           backgroundColor: "red",
         },
       });
-  }, [formState.errors]);
-
-  useEffect(() => {
-    const ResetingData = async () => {
-      const { data: newData } = await refetch();
-      if (newData) {
-        reset(
-          {
-            links: [
-              ...newData.devlinks_user_by_pk.links.map(
-                ({
-                  id,
-                  link,
-                  platform,
-                  user_id,
-                }: {
-                  id: number;
-                  link: string;
-                  platform: string;
-                  user_id: number;
-                }) => ({ id, link, platform, user_id })
-              ),
-            ].sort((a, b) => a.id - b.id),
-          },
-          {
-            keepDirty: false,
-            keepDirtyValues: false,
-          }
-        );
-      }
-    };
-    if (User && formState.isDirty) {
-      ResetingData();
-    }
-  }, [formState.isSubmitted]);
+  }, [errors]);
 
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    // we sould read the isdirty before using it
     if (!User) return;
-    if (!formState.isDirty) {
+    if (!isDirty) {
       toast.error("No changes detected", {
         position: "bottom-center",
         duration: 2000,
@@ -166,6 +138,33 @@ function LinksPage() {
           })),
         };
         await upsertLinks({ variables });
+      }
+
+      const { data: newData } = await refetch();
+      if (newData) {
+        reset(
+          {
+            links: [
+              ...newData.devlinks_user_by_pk.links.map(
+                ({
+                  id,
+                  link,
+                  platform,
+                  user_id,
+                }: {
+                  id: number;
+                  link: string;
+                  platform: string;
+                  user_id: number;
+                }) => ({ id, link, platform, user_id })
+              ),
+            ].sort((a, b) => a.id - b.id),
+          },
+          {
+            keepDirty: false,
+            keepDirtyValues: false,
+          }
+        );
       }
 
       toast.success("Links saved successfully", {
@@ -224,10 +223,10 @@ function LinksPage() {
                 <LinkCard
                   control={control}
                   key={field.id}
-                  formState={formState}
                   index={index}
                   remove={remove}
                   link={field}
+                  errors={errors}
                 />
               );
             })}
@@ -240,11 +239,11 @@ function LinksPage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          disabled={formState.isSubmitting}
+          disabled={isSubmitting}
           type="submit"
           className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          {formState.isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>
