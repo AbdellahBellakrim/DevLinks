@@ -8,8 +8,6 @@ import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const ACCEPTED_FILE_TYPES = ["image/png", "image/jpeg"];
-const MAX_UPLOAD_SIZE = 1024 * 1024 * 3;
 const schema = z.object({
   firstname: z
     .string()
@@ -29,14 +27,14 @@ const schema = z.object({
     .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
   profilePicture: z
     .instanceof(File)
-    .refine(
-      (file) => !file || file.size <= MAX_UPLOAD_SIZE,
-      "File size must be less than 3MB"
-    )
-    .refine(
-      (file) => !file || ACCEPTED_FILE_TYPES.includes(file.type),
-      "File must be a PNG or JPG image"
-    )
+    // .refine(
+    //   (file) => !file || file.size <= MAX_UPLOAD_SIZE,
+    //   "File size must be less than 3MB"
+    // )
+    // .refine(
+    //   (file) => !file || ACCEPTED_FILE_TYPES.includes(file.type),
+    //   "File must be a PNG or JPG image"
+    // )
     .nullable(),
 });
 
@@ -71,7 +69,8 @@ function ProfilePage() {
     register,
     setValue,
     handleSubmit,
-    formState: { isDirty, errors },
+    reset,
+    formState: { isDirty, errors, isSubmitting },
   } = useForm<FormFields>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -93,7 +92,6 @@ function ProfilePage() {
   };
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
-    console.log(data);
     if (!User) return;
     if (!isDirty && !imageFile) {
       toast.error("No changes detected!", {
@@ -110,20 +108,58 @@ function ProfilePage() {
       return;
     }
 
-    // if (imageFile) {
-    // const formData = new FormData();
-    // formData.append("file", file);
-    // formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-    // formData.append("upload_preset", CLOUDINARY_PRESET);
+    const getImagefromCloudInary = async () => {
+      const formData = new FormData();
+      formData.append("file", imageFile as Blob);
+      formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
 
-    // const response = await fetch(CLOUDINARY_ENDPOINT, {
-    //   method: "POST",
-    //   body: formData,
-    // });
+      const response = await fetch(CLOUDINARY_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
 
-    // const data = await response.json();
-    // setImagePreview(data.secure_url);
-    // }
+      const data = await response.json();
+      return data.secure_url;
+    };
+    const profilePicture: string = imageFile
+      ? await getImagefromCloudInary()
+      : User.profile_picture;
+    User &&
+      updateUser({
+        variables: {
+          id: User.id,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          profile_picture: profilePicture,
+        },
+      });
+    userState({
+      ...User,
+      firstname: data.firstname,
+      lastname: data.lastname,
+      email: data.email,
+      profile_picture: profilePicture,
+    });
+    reset(
+      {
+        firstname: data.firstname,
+        lastname: data.lastname,
+        email: data.email,
+        profilePicture: null,
+      },
+      {
+        keepValues: false,
+        keepDefaultValues: false,
+        keepErrors: false,
+        keepDirty: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+        keepSubmitCount: false,
+      }
+    );
     toast.success("Your changes have been successfully saved!", {
       position: "bottom-center",
       duration: 2000,
@@ -135,6 +171,39 @@ function ProfilePage() {
         backgroundColor: "green",
       },
     });
+  };
+
+  const profilePictureOnChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      const validImageTypes = ["image/jpeg", "image/png"];
+      if (!validImageTypes.includes(file.type) || file.size > 1024 * 1024 * 3) {
+        toast.error(
+          "Please upload a file with a valid image format (PNG or JPG), Size less than 3MB.",
+          {
+            position: "bottom-center",
+            duration: 2000,
+            style: {
+              width: "fit-content",
+              maxWidth: "406px",
+              padding: "16px 24px",
+              color: "#FAFAFA",
+              backgroundColor: "red",
+            },
+          }
+        );
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setImageFile(file);
+      setValue("profilePicture", file);
+    }
   };
 
   return (
@@ -162,42 +231,7 @@ function ProfilePage() {
               type="file"
               accept=".png, .jpg"
               style={{ display: "none" }}
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
-                if (file) {
-                  console.log(file);
-                  const validImageTypes = ["image/jpeg", "image/png"];
-                  if (!validImageTypes.includes(file.type)) {
-                    toast.error(
-                      "Please upload a file with a valid image format (PNG or JPG).",
-                      {
-                        position: "bottom-center",
-                        duration: 2000,
-                        style: {
-                          width: "fit-content",
-                          maxWidth: "406px",
-                          padding: "16px 24px",
-                          color: "#FAFAFA",
-                          backgroundColor: "red",
-                        },
-                      }
-                    );
-                    return;
-                  }
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setImagePreview(reader.result as string);
-                    User &&
-                      userState({
-                        ...User,
-                        profile_picture: reader.result as string,
-                      });
-                  };
-                  reader.readAsDataURL(file);
-                  setImageFile(file);
-                  setValue("profilePicture", file);
-                }
-              }}
+              onChange={profilePictureOnChange}
             />
             {imagePreview === null ? (
               <>
@@ -337,10 +371,11 @@ function ProfilePage() {
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
+          disabled={isSubmitting}
           type="submit"
-          className={`rounded-md bg-[#633CFF] text-white w-full sm:w-auto`}
+          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>
