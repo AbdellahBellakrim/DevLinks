@@ -8,6 +8,8 @@ import { z } from "zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+const ACCEPTED_FILE_TYPES = ["image/png", "image/jpeg"];
+const MAX_UPLOAD_SIZE = 1024 * 1024 * 3;
 const schema = z.object({
   firstname: z
     .string()
@@ -25,7 +27,17 @@ const schema = z.object({
     .string()
     .email("Invalid email address")
     .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
-  // profilePicture: z.instanceof(File).optional().refine((val) => {}),
+  profilePicture: z
+    .instanceof(File)
+    .refine(
+      (file) => !file || file.size <= MAX_UPLOAD_SIZE,
+      "File size must be less than 3MB"
+    )
+    .refine(
+      (file) => !file || ACCEPTED_FILE_TYPES.includes(file.type),
+      "File must be a PNG or JPG image"
+    )
+    .nullable(),
 });
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -55,12 +67,18 @@ function ProfilePage() {
 
   type FormFields = z.infer<typeof schema>;
 
-  const { register, handleSubmit, formState } = useForm<FormFields>({
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    formState: { isDirty, errors },
+  } = useForm<FormFields>({
     resolver: zodResolver(schema),
     defaultValues: {
       firstname: User?.firstname || "",
       lastname: User?.lastname || "",
       email: User?.email || "",
+      profilePicture: null,
     },
   });
 
@@ -75,8 +93,9 @@ function ProfilePage() {
   };
 
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    console.log(data);
     if (!User) return;
-    if (!formState.isDirty && !imageFile) {
+    if (!isDirty && !imageFile) {
       toast.error("No changes detected!", {
         position: "bottom-center",
         duration: 2000,
@@ -129,7 +148,7 @@ function ProfilePage() {
       </p>
       <div className="flex-grow  mb-6 border-b border-divider">
         {/* first container */}
-        <div className="min-h-[233px] rounded-xl bg-[#FAFAFA]  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
+        <div className=" min-h-[233px] rounded-xl bg-[#FAFAFA]  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
           <h2 className="w-[40%] font-normal text-sm text-[#737373]">
             Profile Picture
           </h2>
@@ -138,6 +157,7 @@ function ProfilePage() {
             className="relative group w-[193px] bg-[#633CFF] bg-opacity-10 h-[193px] min-w-[193px] min-h-[193px] rounded-md cursor-pointer flex justify-center items-center flex-col hover:opacity-80"
           >
             <input
+              {...register("profilePicture")}
               id="file-input"
               type="file"
               accept=".png, .jpg"
@@ -145,6 +165,7 @@ function ProfilePage() {
               onChange={(e) => {
                 const file = e.target.files?.[0] || null;
                 if (file) {
+                  console.log(file);
                   const validImageTypes = ["image/jpeg", "image/png"];
                   if (!validImageTypes.includes(file.type)) {
                     toast.error(
@@ -174,6 +195,7 @@ function ProfilePage() {
                   };
                   reader.readAsDataURL(file);
                   setImageFile(file);
+                  setValue("profilePicture", file);
                 }
               }}
             />
@@ -219,19 +241,25 @@ function ProfilePage() {
               </>
             )}
           </div>
-
-          <p className="font-normal text-xs text-[#737373]">
-            Image must be below 1024x1024px. Use PNG or JPG format.
-          </p>
+          <div>
+            <p className="font-normal text-xs text-[#737373]">
+              Image must be below 1024x1024px. Use PNG or JPG format.
+            </p>
+            {errors.profilePicture && (
+              <p className="text-[#FF3939]  w-full text-xs mt-2">
+                {errors.profilePicture.message}
+              </p>
+            )}
+          </div>
         </div>
         {/* second container */}
         <div className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
           <Input
             // div to show errors
             endContent={
-              formState.errors.firstname ? (
+              errors.firstname ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                  {formState.errors.firstname.message}
+                  {errors.firstname.message}
                 </div>
               ) : null
             }
@@ -247,7 +275,7 @@ function ProfilePage() {
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper: formState.errors.firstname
+              inputWrapper: errors.firstname
                 ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
                 : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
@@ -255,9 +283,9 @@ function ProfilePage() {
           <Input
             // div to show errors
             endContent={
-              formState.errors.lastname ? (
+              errors.lastname ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                  {formState.errors.lastname.message}
+                  {errors.lastname.message}
                 </div>
               ) : null
             }
@@ -273,7 +301,7 @@ function ProfilePage() {
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper: formState.errors.lastname
+              inputWrapper: errors.lastname
                 ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
                 : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
@@ -281,9 +309,9 @@ function ProfilePage() {
           <Input
             // div to show errors
             endContent={
-              formState.errors.email ? (
+              errors.email ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                  {formState.errors.email.message}
+                  {errors.email.message}
                 </div>
               ) : null
             }
@@ -299,7 +327,7 @@ function ProfilePage() {
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper: formState.errors.email
+              inputWrapper: errors.email
                 ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
                 : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
