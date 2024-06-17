@@ -1,25 +1,55 @@
 import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button, Input } from "@nextui-org/react";
-import { dataChangingState, userState } from "../apollo-client/apollo-client";
+import { userState } from "../apollo-client/apollo-client";
 import { useEffect, useState } from "react";
 import { UPDATE_USER_BY_PK } from "../apollo-client/mutations";
-import { userType } from "../apollo-client/types";
 import toast from "react-hot-toast";
+import { z } from "zod";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const schema = z.object({
+  firstname: z
+    .string()
+    .min(1, "Can't be empty")
+    .max(50, "Too long!")
+    .regex(/^[a-zA-Z\s-']+$/, "Invalid first name!")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
+  lastname: z
+    .string()
+    .min(1, "Can't be empty")
+    .max(50, "Too long!")
+    .regex(/^[a-zA-Z\s-']+$/, "Invalid last name!")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
+  profilePicture: z.instanceof(File).nullable(),
+});
+
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
+const CLOUDINARY_ENDPOINT = import.meta.env.VITE_CLOUDINARY_ENDPOINT;
 
 function ProfilePage() {
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(
     window.innerWidth < 640
   );
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-
-  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-  const CLOUDINARY_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET;
-  const CLOUDINARY_ENDPOINT = import.meta.env.VITE_CLOUDINARY_ENDPOINT;
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     const handleResize = () => setIsSmallScreen(window.innerWidth < 640);
@@ -35,93 +65,38 @@ function ProfilePage() {
   // get the update user mutation
   const [updateUser] = useMutation(UPDATE_USER_BY_PK);
 
+  type FormFields = z.infer<typeof schema>;
+
+  const {
+    register,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { isDirty, errors, isSubmitting },
+  } = useForm<FormFields>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      firstname: User?.firstname || "",
+      lastname: User?.lastname || "",
+      email: User?.email || "",
+      profilePicture: null,
+    },
+  });
+
   useEffect(() => {
     if (User) {
       setImagePreview(User.profile_picture);
     }
   }, [User]);
 
-  useEffect(() => {
-    setFirstName(User?.firstname || "");
-    setLastName(User?.lastname || "");
-    setEmail(User?.email || "");
-  }, [User]);
-
   const handleDivClick = () => {
     document.getElementById("file-input")?.click();
   };
 
-  const handleFileChange = (e: any) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setSelectedImage(file);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSave = async () => {
-    if (
-      selectedImage ||
-      ((firstName !== User?.firstname ||
-        lastName !== User?.lastname ||
-        email !== User?.email) &&
-        firstName !== "" &&
-        lastName !== "" &&
-        email !== "")
-    ) {
-      dataChangingState(true);
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append("file", selectedImage);
-        formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
-        formData.append("upload_preset", CLOUDINARY_PRESET);
-
-        const response = await fetch(CLOUDINARY_ENDPOINT, {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = await response.json();
-        setImagePreview(data.secure_url);
-        userState({
-          ...User,
-          profile_picture: data.secure_url,
-          firstname: firstName,
-          lastname: lastName,
-          email: email,
-        } as userType);
-        updateUser({
-          variables: {
-            id: User?.id,
-            lastname: lastName,
-            email: email,
-            firstname: firstName,
-            profile_picture: data.secure_url,
-          },
-        });
-      } else {
-        userState({
-          ...User,
-          firstname: firstName,
-          lastname: lastName,
-          email: email,
-        } as userType);
-        updateUser({
-          variables: {
-            id: User?.id,
-            lastname: lastName,
-            email: email,
-            firstname: firstName,
-            profile_picture: User?.profile_picture,
-          },
-        });
-      }
-      dataChangingState(false);
-      toast.success("Your changes have been successfully saved!", {
+  const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    if (!User) return;
+    if (!isDirty && !imageFile) {
+      toast.error("No changes detected!", {
         position: "bottom-center",
         duration: 2000,
         style: {
@@ -129,21 +104,158 @@ function ProfilePage() {
           maxWidth: "406px",
           padding: "16px 24px",
           color: "#FAFAFA",
-          backgroundColor: "green",
+          backgroundColor: "red",
         },
       });
+      return;
+    }
+
+    const getImagefromCloudInary = async () => {
+      const formData = new FormData();
+      formData.append("file", imageFile as Blob);
+      formData.append("cloud_name", CLOUDINARY_CLOUD_NAME);
+      formData.append("upload_preset", CLOUDINARY_PRESET);
+
+      const response = await fetch(CLOUDINARY_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      return data.secure_url;
+    };
+    const profilePicture: string = imageFile
+      ? await getImagefromCloudInary()
+      : User.profile_picture;
+    User &&
+      updateUser({
+        variables: {
+          id: User.id,
+          firstname: data.firstname,
+          lastname: data.lastname,
+          email: data.email,
+          profile_picture: profilePicture,
+        },
+      });
+    userState({
+      ...User,
+      firstname: data.firstname,
+      lastname: data.lastname,
+      email: data.email,
+      profile_picture: profilePicture,
+    });
+    reset(
+      {
+        firstname: data.firstname,
+        lastname: data.lastname,
+        email: data.email,
+        profilePicture: null,
+      },
+      {
+        keepValues: false,
+        keepDefaultValues: false,
+        keepErrors: false,
+        keepDirty: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+        keepSubmitCount: false,
+      }
+    );
+    toast.success("Your changes have been successfully saved!", {
+      position: "bottom-center",
+      duration: 2000,
+      style: {
+        width: "fit-content",
+        maxWidth: "406px",
+        padding: "16px 24px",
+        color: "#FAFAFA",
+        backgroundColor: "green",
+      },
+    });
+  };
+
+  const CheckFileTypeFromBuffer = (file: File): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        if (reader.result) {
+          const arr = new Uint8Array(reader.result as ArrayBuffer).subarray(
+            0,
+            4
+          );
+          let header = "";
+          for (let i = 0; i < arr.length; i++) {
+            header += arr[i].toString(16).padStart(2, "0");
+          }
+          const isValidHeader =
+            header === "89504e47" || // PNG
+            header.startsWith("ffd8ff"); // JPG
+          resolve(isValidHeader);
+        } else {
+          reject(new Error("Failed to read file buffer"));
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error("Error reading file"));
+      };
+
+      reader.readAsArrayBuffer(file.slice(0, 4));
+    });
+  };
+
+  const profilePictureOnChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      const validImageTypes = ["image/jpeg", "image/png"];
+      const isFileValid = await CheckFileTypeFromBuffer(file);
+      if (
+        !validImageTypes.includes(file.type) ||
+        file.size > 1024 * 1024 * 3 ||
+        !isFileValid
+      ) {
+        toast.error(
+          "Please upload a file with a valid image format (PNG or JPG), Size less than 3MB.",
+          {
+            position: "bottom-center",
+            duration: 2000,
+            style: {
+              width: "fit-content",
+              maxWidth: "406px",
+              padding: "16px 24px",
+              color: "#FAFAFA",
+              backgroundColor: "red",
+            },
+          }
+        );
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setImageFile(file);
+      setValue("profilePicture", file);
     }
   };
 
   return (
-    <div className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex-grow max-w-[808px] bg-white rounded-md p-4 md:p-10 flex flex-col shadow-md"
+    >
       <h1 className="font-bold text-3xl mb-3">Profile Details</h1>
       <p className="font-normal text-sm text-[#737373] mb-8">
         Add your details to create a personal touch to your profile.
       </p>
       <div className="flex-grow  mb-6 border-b border-divider">
         {/* first container */}
-        <div className="min-h-[233px] rounded-xl bg-[#FAFAFA]  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
+        <div className=" min-h-[233px] rounded-xl bg-[#FAFAFA]  mb-6 p-5 flex items-start sm:items-center justify-between flex-col sm:flex-row gap-6">
           <h2 className="w-[40%] font-normal text-sm text-[#737373]">
             Profile Picture
           </h2>
@@ -152,11 +264,12 @@ function ProfilePage() {
             className="relative group w-[193px] bg-[#633CFF] bg-opacity-10 h-[193px] min-w-[193px] min-h-[193px] rounded-md cursor-pointer flex justify-center items-center flex-col hover:opacity-80"
           >
             <input
+              {...register("profilePicture")}
               id="file-input"
               type="file"
-              accept="image/*"
+              accept=".png, .jpg"
               style={{ display: "none" }}
-              onChange={handleFileChange}
+              onChange={profilePictureOnChange}
             />
             {imagePreview === null ? (
               <>
@@ -200,85 +313,111 @@ function ProfilePage() {
               </>
             )}
           </div>
-
-          <p className="font-normal text-xs text-[#737373]">
-            Image must be below 1024x1024px. Use PNG or JPG format.
-          </p>
+          <div>
+            <p className="font-normal text-xs text-[#737373]">
+              Image must be below 1024x1024px. Use PNG or JPG format.
+            </p>
+            {errors.profilePicture && (
+              <p className="text-[#FF3939]  w-full text-xs mt-2">
+                {errors.profilePicture.message}
+              </p>
+            )}
+          </div>
         </div>
-        {/* second container (form) */}
-        <form className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
+        {/* second container */}
+        <div className="min-h-[208px] rounded-xl bg-[#FAFAFA] p-5 flex flex-col gap-5">
           <Input
-            onChange={(e) => setFirstName(e.target.value)}
+            // div to show errors
+            endContent={
+              errors.firstname ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.firstname.message}
+                </div>
+              ) : null
+            }
+            {...register("firstname")}
             radius="sm"
-            value={firstName}
             label="First name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
             placeholder={"e.g. John"}
-            isRequired
             classNames={{
               base: "text-[#737373]",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.firstname
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
-            onChange={(e) => setLastName(e.target.value)}
-            value={lastName}
+            // div to show errors
+            endContent={
+              errors.lastname ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.lastname.message}
+                </div>
+              ) : null
+            }
+            {...register("lastname")}
             radius="sm"
             label="Last name"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
             type="text"
             placeholder={"Wright"}
-            isRequired
             classNames={{
               base: "text-[#737373]",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.lastname
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
+            // div to show errors
+            endContent={
+              errors.email ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.email.message}
+                </div>
+              ) : null
+            }
+            {...register("email")}
             radius="sm"
             label="Email"
             labelPlacement={isSmallScreen ? "outside" : "outside-left"}
-            type="email"
+            type="text"
             placeholder={"ben@example.com"}
-            isRequired
             classNames={{
               base: "text-[#737373] z-0",
               label:
                 "w-full sm:w-[40%] font-normal  text-md text-[#737373] opacity-70 sm:opacity-100",
               mainWrapper: "w-full sm:w-[60%]",
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.email
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
-        </form>
+        </div>
       </div>
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          onClick={handleSave}
-          className={`rounded-md bg-[#633CFF] text-white w-full sm:w-auto`}
+          disabled={isSubmitting}
+          type="submit"
+          className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          Save
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 
 export default ProfilePage;
-
-// ${linksNumber === 0 ? "opacity-40" : "opacity-100"}

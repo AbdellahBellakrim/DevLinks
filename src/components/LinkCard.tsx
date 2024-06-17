@@ -1,9 +1,13 @@
 import { Input, Select, SelectItem, SelectSection } from "@nextui-org/react";
 import { platforms } from "../apollo-client/apollo-client";
 import { iconComponents } from "./SocialButton";
+import {
+  Control,
+  Controller,
+  FieldErrors,
+  UseFieldArrayRemove,
+} from "react-hook-form";
 import { LinkType } from "../apollo-client/types";
-import { FormState, UseFormRegister } from "react-hook-form";
-import { FormFields } from "../routes/LinksPage";
 
 const linkExamples: any = {
   Github: "e.g. https://www.github.com/johnappleseed",
@@ -23,30 +27,35 @@ const linkExamples: any = {
 };
 
 function LinkCard({
+  control,
   index,
   link,
-  register,
   remove,
-  update,
-  formState,
-  removedLinks,
-  setRemovedLinks,
+  errors,
 }: {
+  control: Control<
+    {
+      links: {
+        link: string;
+        platform: string;
+        user_id: number;
+        id?: number | undefined;
+      }[];
+    },
+    any
+  >;
   index: number;
   link: LinkType;
-  register: UseFormRegister<FormFields>;
-  remove: (index: number) => void;
-  update: (index: number, data: LinkType) => void;
-  formState: FormState<FormFields>;
-  removedLinks: LinkType[];
-  setRemovedLinks: React.Dispatch<React.SetStateAction<LinkType[]>>;
+  remove: UseFieldArrayRemove;
+  errors: FieldErrors<{
+    links: {
+      link: string;
+      platform: string;
+      user_id: number;
+      id?: number | undefined;
+    }[];
+  }>;
 }) {
-  // ======= remove link from links =======
-  const removeLinkFromUpdatedLinks = (index: number) => {
-    remove(index);
-    if (link.id) setRemovedLinks([...removedLinks, link]);
-  };
-
   return (
     <div className="mb-6  h-[228px] w-full">
       <div className="w-full h-[228px] bg-[#FAFAFA] rounded-xl p-5 flex flex-col">
@@ -69,124 +78,137 @@ function LinkCard({
           </div>
           <p
             className="font-normal text-md text-[#737373] cursor-pointer hover:text-[#633CFF]"
-            onClick={() => removeLinkFromUpdatedLinks(index)}
+            onClick={() => {
+              remove(index);
+            }}
           >
             Remove
           </p>
         </div>
         <div className="flex-grow">
-          <Select
-            // div to show errors
-            endContent={
-              formState.errors.links?.[index]?.platform ? (
-                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                  {formState.errors.links?.[index]?.platform?.message}
-                </div>
-              ) : null
-            }
-            {...register(`links.${index}.platform` as const)}
-            value={link.platform}
-            label="Platform"
-            placeholder={link.platform}
-            labelPlacement="outside"
-            classNames={{
-              value: "opacity-75",
-              label: "opacity-85 font-normal",
-              mainWrapper: "mb-6",
-              trigger: formState.errors.links?.[index]?.platform
-                ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
-                : "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
+          <Controller
+            control={control}
+            name={`links.${index}.platform` as const}
+            render={({ field }) => (
+              <Select
+                {...field}
+                // div to show errors
+                endContent={
+                  errors.links?.[index]?.platform ? (
+                    <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                      {errors.links?.[index]?.platform?.message}
+                    </div>
+                  ) : null
+                }
+                value={field.value}
+                label="Platform"
+                placeholder={field.value}
+                labelPlacement="outside"
+                classNames={{
+                  value: "opacity-75",
+                  label: "opacity-85 font-normal",
+                  mainWrapper: "mb-6",
+                  trigger: errors.links?.[index]?.platform
+                    ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
+                    : "border border-[#E0E0E0]  bg-white rounded-md focus-within:bg-white focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue ",
 
-              popoverContent: "rounded-md mt-2",
-            }}
-            listboxProps={{
-              itemClasses: {
-                base: [
-                  "rounded-md",
-                  "text-default-500",
-                  "transition-opacity",
-                  "data-[hover=true]:bg-default-100",
-                  "data-[selectable=true]:focus:bg-default-50",
-                  "data-[selectable=true]:focus:text-[#633CFF]",
-                  "data-[pressed=true]:opacity-70",
-                  "data-[focus-visible=true]:ring-default-500",
-                ],
-              },
-            }}
-            renderValue={(items) => {
-              return items.map((item) => {
-                const IconComponentItems =
-                  iconComponents[item.textValue || ""] || null;
+                  popoverContent: "rounded-md mt-2",
+                }}
+                listboxProps={{
+                  itemClasses: {
+                    base: [
+                      "rounded-md",
+                      "text-default-500",
+                      "transition-opacity",
+                      "data-[hover=true]:bg-default-100",
+                      "data-[selectable=true]:focus:bg-default-50",
+                      "data-[selectable=true]:focus:text-[#633CFF]",
+                      "data-[pressed=true]:opacity-70",
+                      "data-[focus-visible=true]:ring-default-500",
+                    ],
+                  },
+                }}
+                renderValue={(items) => {
+                  return items.map((item) => {
+                    const IconComponentItems =
+                      iconComponents[item.textValue || ""] || null;
 
-                return (
-                  <div key={item.key} className="flex gap-4">
-                    {IconComponentItems && (
-                      <IconComponentItems fillColor="#737373" />
-                    )}
-                    <p>{item.textValue}</p>
+                    return (
+                      <div key={item.key} className="flex gap-4">
+                        {IconComponentItems && (
+                          <IconComponentItems fillColor="#737373" />
+                        )}
+                        <p>{item.textValue}</p>
+                      </div>
+                    );
+                  });
+                }}
+                onChange={(e) => {
+                  const selectedValue = Number(e.target.value);
+                  field.onChange(platforms[selectedValue]);
+                }}
+              >
+                {platforms.map((platform: string, index: number) => {
+                  const IconComponentItems = iconComponents[platform] || null;
+
+                  return (
+                    <SelectSection showDivider key={index}>
+                      <SelectItem
+                        value={platform}
+                        key={index}
+                        className=" rounded-none text-[#737373]"
+                        startContent={
+                          IconComponentItems && (
+                            <IconComponentItems fillColor="#737373" />
+                          )
+                        }
+                      >
+                        {platform}
+                      </SelectItem>
+                    </SelectSection>
+                  );
+                })}
+              </Select>
+            )}
+          />
+          <Controller
+            control={control}
+            name={`links.${index}.link` as const}
+            render={({ field }) => (
+              <Input
+                {...field}
+                endContent={
+                  errors.links?.[index]?.link ? (
+                    <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                      {errors.links?.[index]?.link?.message}
+                    </div>
+                  ) : null
+                }
+                radius="sm"
+                label="Link"
+                labelPlacement={"outside"}
+                defaultValue={field.value}
+                type="text"
+                placeholder={linkExamples[link.platform] || ""}
+                startContent={
+                  <div>
+                    <img src="/icon-links-header.svg" alt="link img" />
                   </div>
-                );
-              });
-            }}
-            onChange={(e) => {
-              const selectedValue = Number(e.target.value);
-              update(index, {
-                ...link,
-                platform: platforms[selectedValue],
-              });
-            }}
-          >
-            {platforms.map((platform: string, index: number) => {
-              const IconComponentItems = iconComponents[platform] || null;
-
-              return (
-                <SelectSection showDivider key={index}>
-                  <SelectItem
-                    value={platform}
-                    key={index}
-                    className=" rounded-none text-[#737373]"
-                    startContent={
-                      IconComponentItems && (
-                        <IconComponentItems fillColor="#737373" />
-                      )
-                    }
-                  >
-                    {platform}
-                  </SelectItem>
-                </SelectSection>
-              );
-            })}
-          </Select>
-          <Input
-            // div to show errors
-            endContent={
-              formState.errors.links?.[index]?.link ? (
-                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
-                  {formState.errors.links?.[index]?.link?.message}
-                </div>
-              ) : null
-            }
-            {...register(`links.${index}.link` as const)}
-            radius="sm"
-            label="Link"
-            labelPlacement={"outside"}
-            defaultValue={link.link}
-            type="text"
-            placeholder={linkExamples[link.platform] || ""}
-            startContent={
-              <div>
-                <img src="/icon-links-header.svg" alt="link img" />
-              </div>
-            }
-            classNames={{
-              label: "opacity-85 font-normal",
-              inputWrapper: formState.errors.links?.[index]?.link
-                ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
-                : "bg-white border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
-              input: ` ${
-                formState.errors.links?.[index]?.link ? "text-red" : "text-gray"
-              }`,
-            }}
+                }
+                classNames={{
+                  label: "opacity-85 font-normal",
+                  inputWrapper: errors.links?.[index]?.link
+                    ? "bg-white border border-[#FF3939]  rounded-md focus-within:border-[#FF3939]  focus-within:shadow-2xl"
+                    : "bg-white border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+                  input: ` ${
+                    errors.links?.[index]?.link ? "text-red" : "text-gray"
+                  }`,
+                }}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                }}
+              />
+            )}
           />
         </div>
       </div>

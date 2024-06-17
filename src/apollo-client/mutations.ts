@@ -41,10 +41,10 @@ export const UPSERT_ONE_LINK = gql`
   }
 `;
 
-export const DELETE_DEVLINKS_LINK = gql`
-  mutation MyMutation($id: Int!) {
-    delete_devlinks_link_by_pk(id: $id) {
-      id
+export const DELETE_DEVLINKS_LINKS = gql`
+  mutation MyMutation($ids: [Int!]!) {
+    delete_devlinks_link(where: { id: { _in: $ids } }) {
+      affected_rows
     }
   }
 `;

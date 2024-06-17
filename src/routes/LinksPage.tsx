@@ -1,7 +1,6 @@
-import { useMutation, useReactiveVar } from "@apollo/client";
+import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
 import { Button } from "@nextui-org/react";
-import client, { userState } from "../apollo-client/apollo-client";
-import { LinkType } from "../apollo-client/types";
+import { userState } from "../apollo-client/apollo-client";
 import LinkCard from "../components/LinkCard";
 import NoLinksCard from "../components/NoLinksCard";
 import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
@@ -10,10 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { useEffect } from "react";
 import {
-  DELETE_DEVLINKS_LINK,
+  DELETE_DEVLINKS_LINKS,
   UPSERT_ONE_LINK,
 } from "../apollo-client/mutations";
-import { useState } from "react";
+import { GET_USER_BY_ID } from "../apollo-client/queries";
+import { LinkType } from "../apollo-client/types";
 
 const schema = z.object({
   links: z
@@ -41,26 +41,39 @@ const schema = z.object({
 export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
-  let User = useReactiveVar(userState);
-  const [upsertOneLink] = useMutation(UPSERT_ONE_LINK);
-  const [removedLinks, setRemovedLinks] = useState<LinkType[]>([]);
-  const { register, handleSubmit, control, watch, formState } =
-    useForm<FormFields>({
-      resolver: zodResolver(schema),
-      defaultValues: {
-        links: User?.links || [],
-      },
-    });
+  const User = useReactiveVar(userState);
+  const { refetch } = useQuery(GET_USER_BY_ID, {
+    variables: { id: User?.id },
+  });
+  const [upsertLinks] = useMutation(UPSERT_ONE_LINK, {
+    refetchQueries: [GET_USER_BY_ID],
+    awaitRefetchQueries: true,
+  });
+  const [deleteLinks] = useMutation(DELETE_DEVLINKS_LINKS, {
+    refetchQueries: [GET_USER_BY_ID],
+    awaitRefetchQueries: true,
+  });
 
-  const linksWatch = watch("links", []);
-  const { append, remove, update } = useFieldArray({
+  const {
+    handleSubmit,
+    control,
+    formState: { errors, isDirty, isSubmitting },
+    reset,
+  } = useForm<FormFields>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      links: User?.links || [],
+    },
+  });
+
+  const { append, remove, fields } = useFieldArray({
     control,
     name: "links",
   });
 
   useEffect(() => {
-    formState.errors.links?.root?.message &&
-      toast(formState.errors.links?.root?.message, {
+    errors.links?.root?.message &&
+      toast(errors.links?.root?.message, {
         position: "bottom-center",
         duration: 2000,
         style: {
@@ -71,15 +84,13 @@ function LinksPage() {
           backgroundColor: "red",
         },
       });
-  }, [formState.errors]);
+  }, [errors]);
 
   // ======= handle submit =======
   const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    // we sould read the isdirty before using it
     if (!User) return;
-    if (
-      removedLinks.length === 0 &&
-      JSON.stringify(data.links) === JSON.stringify(User.links)
-    ) {
+    if (!isDirty) {
       toast.error("No changes detected", {
         position: "bottom-center",
         duration: 2000,
@@ -93,47 +104,93 @@ function LinksPage() {
       });
       return;
     }
-    if (JSON.stringify(data.links) !== JSON.stringify(User.links)) {
-      data.links.forEach((link, index) => {
-        if (JSON.stringify(link) === JSON.stringify(User.links[index])) return;
+
+    const initialLinks = new Set(User.links.map((link) => link.id));
+    const currentLinks = new Set(data.links.map((link) => link.id));
+
+    const removedLinks = [...initialLinks].filter(
+      (id) => !currentLinks.has(id)
+    );
+    const upsertedLinks = data.links.filter(
+      (link) =>
+        !initialLinks.has(link.id) ||
+        (initialLinks.has(link.id) &&
+          !User.links.find(
+            (u) =>
+              u.id === link.id &&
+              u.link === link.link &&
+              u.platform === link.platform
+          ))
+    );
+
+    try {
+      if (removedLinks.length > 0) {
+        const Ids: number[] = removedLinks.map((id) => id as number);
+        await deleteLinks({ variables: { ids: Ids } });
+      }
+      if (upsertedLinks.length > 0) {
         const variables = {
-          objects: [
-            {
-              id: link.id,
-              link: link.link,
-              platform: link.platform,
-              user_id: User.id,
-            },
-          ],
+          objects: upsertedLinks.map((link) => ({
+            id: link.id,
+            link: link.link,
+            platform: link.platform,
+            user_id: User.id,
+          })),
         };
-        upsertOneLink({ variables });
+        await upsertLinks({ variables });
+      }
+
+      const { data: newData } = await refetch();
+      if (newData) {
+        reset(
+          {
+            links: [
+              ...newData.devlinks_user_by_pk.links.map(
+                ({
+                  id,
+                  link,
+                  platform,
+                  user_id,
+                }: {
+                  id: number;
+                  link: string;
+                  platform: string;
+                  user_id: number;
+                }) => ({ id, link, platform, user_id })
+              ),
+            ].sort((a, b) => a.id - b.id),
+          },
+          {
+            keepDirty: false,
+            keepDirtyValues: false,
+          }
+        );
+      }
+
+      toast.success("Links saved successfully", {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "green",
+        },
+      });
+    } catch (error) {
+      toast.error("An error occurred while saving links", {
+        position: "bottom-center",
+        duration: 2000,
+        style: {
+          width: "fit-content",
+          maxWidth: "406px",
+          padding: "16px 24px",
+          color: "#FAFAFA",
+          backgroundColor: "red",
+        },
       });
     }
-    if (removedLinks.length > 0) {
-      try {
-        removedLinks.forEach(async (link) => {
-          await client.mutate({
-            mutation: DELETE_DEVLINKS_LINK,
-            variables: { id: link.id },
-          });
-        });
-        setRemovedLinks([]);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-    toast.success("Links saved successfully", {
-      position: "bottom-center",
-      duration: 2000,
-      style: {
-        width: "fit-content",
-        maxWidth: "406px",
-        padding: "16px 24px",
-        color: "#FAFAFA",
-        backgroundColor: "green",
-      },
-    });
-    await new Promise(() => setTimeout(() => window.location.reload(), 2000));
   };
   // ======= handle add link =======
   const handleAddLink = () => {
@@ -157,22 +214,19 @@ function LinksPage() {
       >
         + Add new Link
       </div>
-      {linksWatch.length > 0 && (
+      {fields.length > 0 && (
         <div className="mb-6 flex-grow border-b border-divider">
           <div className="h-[480px] overflow-y-auto no-scrollbar">
             {/* each link div : show links from links state*/}
-            {linksWatch.map((link: LinkType, index: number) => {
+            {fields.map((field: LinkType, index: number) => {
               return (
                 <LinkCard
-                  key={link.id || index}
+                  control={control}
+                  key={field.id}
                   index={index}
-                  link={link}
-                  register={register}
                   remove={remove}
-                  update={update}
-                  formState={formState}
-                  removedLinks={removedLinks}
-                  setRemovedLinks={setRemovedLinks}
+                  link={field}
+                  errors={errors}
                 />
               );
             })}
@@ -181,15 +235,15 @@ function LinksPage() {
       )}
 
       {/* if there is no links component */}
-      {User && linksWatch.length === 0 && <NoLinksCard />}
+      {User && fields.length === 0 && <NoLinksCard />}
       {/* save button */}
       <div className="h-fit w-full flex items-center justify-end">
         <Button
-          disabled={formState.isSubmitting}
+          disabled={isSubmitting}
           type="submit"
           className={`rounded-md bg-[#633CFF] text-white  w-full sm:w-auto`}
         >
-          {formState.isSubmitting ? "Saving..." : "Save"}
+          {isSubmitting ? "Saving..." : "Save"}
         </Button>
       </div>
     </form>
