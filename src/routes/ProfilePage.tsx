@@ -14,28 +14,30 @@ const schema = z.object({
     .min(1, "Can't be empty")
     .max(50, "Too long!")
     .regex(/^[a-zA-Z\s-']+$/, "Invalid first name!")
-    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
   lastname: z
     .string()
     .min(1, "Can't be empty")
     .max(50, "Too long!")
     .regex(/^[a-zA-Z\s-']+$/, "Invalid last name!")
-    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
   email: z
     .string()
     .email("Invalid email address")
-    .refine((val) => val.trim().length > 0, "Can't be empty or spaces"),
-  profilePicture: z
-    .instanceof(File)
-    // .refine(
-    //   (file) => !file || file.size <= MAX_UPLOAD_SIZE,
-    //   "File size must be less than 3MB"
-    // )
-    // .refine(
-    //   (file) => !file || ACCEPTED_FILE_TYPES.includes(file.type),
-    //   "File must be a PNG or JPG image"
-    // )
-    .nullable(),
+    .refine((val) => val.trim().length > 0, "Can't be empty or spaces")
+    .refine(
+      (val) => val.trim().length === val.length,
+      "No spaces at the beginning or end"
+    ),
+  profilePicture: z.instanceof(File).nullable(),
 });
 
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -173,13 +175,49 @@ function ProfilePage() {
     });
   };
 
+  const CheckFileTypeFromBuffer = (file: File): Promise<boolean> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        if (reader.result) {
+          const arr = new Uint8Array(reader.result as ArrayBuffer).subarray(
+            0,
+            4
+          );
+          let header = "";
+          for (let i = 0; i < arr.length; i++) {
+            header += arr[i].toString(16).padStart(2, "0");
+          }
+          const isValidHeader =
+            header === "89504e47" || // PNG
+            header.startsWith("ffd8ff"); // JPG
+          resolve(isValidHeader);
+        } else {
+          reject(new Error("Failed to read file buffer"));
+        }
+      };
+
+      reader.onerror = () => {
+        reject(new Error("Error reading file"));
+      };
+
+      reader.readAsArrayBuffer(file.slice(0, 4));
+    });
+  };
+
   const profilePictureOnChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0] || null;
     if (file) {
       const validImageTypes = ["image/jpeg", "image/png"];
-      if (!validImageTypes.includes(file.type) || file.size > 1024 * 1024 * 3) {
+      const isFileValid = await CheckFileTypeFromBuffer(file);
+      if (
+        !validImageTypes.includes(file.type) ||
+        file.size > 1024 * 1024 * 3 ||
+        !isFileValid
+      ) {
         toast.error(
           "Please upload a file with a valid image format (PNG or JPG), Size less than 3MB.",
           {
