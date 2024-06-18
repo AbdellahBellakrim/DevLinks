@@ -46,3 +46,5 @@
   - Implement drag-and-drop functionality for reordering links.
   - Add a feature to copy the user’s link-sharing profile URL to the clipboard.
   - Optional: Integrate image uploading functionality for profile pictures using a service like Cloudinary.
+  - User log-out, User delete account
+  - landing page

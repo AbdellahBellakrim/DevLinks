@@ -43,6 +43,11 @@ function Login() {
                 "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
+          <div className="flex justify-end items-center -my-6">
+            <p className="text-[#737373] text-sm font-normal cursor-pointer hover:underline hover:text-[#633CFF]">
+              Forgot password?
+            </p>
+          </div>
           <Input
             radius="sm"
             label="Password"
@@ -75,6 +80,34 @@ function Login() {
             </span>
           </div>
         </div>
+        <div className="flex gap-1">
+          <Button
+            className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
+            variant="solid"
+            startContent={
+              <img
+                src="/icongithub.svg"
+                alt="github icon"
+                className="w-4 h-4"
+              />
+            }
+          >
+            Github
+          </Button>
+          <Button
+            className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
+            variant="solid"
+            startContent={
+              <img
+                src="/icontwitter.svg"
+                alt="twitter icon"
+                className="w-5 h-5"
+              />
+            }
+          >
+            Twitter
+          </Button>
+        </div>
         <Button
           className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
           variant="solid"
@@ -84,6 +117,7 @@ function Login() {
         >
           Google
         </Button>
+
         <div className="w-full flex items-center justify-center  font-normal flex-col sm:flex-row mt-6 sm:gap-1">
           <p className="text-[#737373]">Don't have an account? </p>
           <p

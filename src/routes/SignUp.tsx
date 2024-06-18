@@ -82,7 +82,7 @@ function SignUp() {
             Password must contain at least 8 characters
           </p>
           <Button className="dark bg-[#633CFF] rounded-md font-medium">
-            Login
+            Sign up
           </Button>
         </div>
         <div className="relative mt-6">
@@ -94,6 +94,34 @@ function SignUp() {
               Or continue with
             </span>
           </div>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
+            variant="solid"
+            startContent={
+              <img
+                src="/icongithub.svg"
+                alt="github icon"
+                className="w-4 h-4"
+              />
+            }
+          >
+            Github
+          </Button>
+          <Button
+            className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
+            variant="solid"
+            startContent={
+              <img
+                src="/icontwitter.svg"
+                alt="twitter icon"
+                className="w-5 h-5"
+              />
+            }
+          >
+            Twitter
+          </Button>
         </div>
         <Button
           className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
