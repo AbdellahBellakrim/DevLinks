@@ -1,11 +1,49 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@nextui-org/react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { z } from "zod";
+
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+
+const schema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(passwordRegex, "Password not strong enough"),
+    confirmPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"], // set the path of the error to 'confirmPassword'
+  });
 
 function SignUp() {
   const navigate = useNavigate();
 
+  type FormFields = z.infer<typeof schema>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<FormFields>({
+    resolver: zodResolver(schema),
+  });
+
+  const onSubmit = async (data: FormFields) => {
+    console.log(data);
+  };
+
   return (
-    <form className="w-screen h-screen  bg-[#FAFAFA] sm:flex sm:justify-center sm:items-center sm:flex-col overflow-y-auto">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="w-screen h-screen  bg-[#FAFAFA] sm:flex sm:justify-center sm:items-center sm:flex-col overflow-y-auto"
+    >
       <div className="w-full max-w-[467px] sm:w-[476px] min-h-[573px] sm:bg-white rounded-md sm:shadow-md p-8 ">
         <div className="flex sm:justify-center sm:items-center gap-1 w-full mb-[51px]">
           <div className="w-fit h-fit bg-white bg-opacity-5">
@@ -28,23 +66,46 @@ function SignUp() {
         </p>
         <div className="flex flex-col gap-10">
           <Input
+            // div to show errors
+            endContent={
+              errors.email ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.email.message}
+                </div>
+              ) : null
+            }
+            {...register("email")}
             radius="sm"
             label="Email address"
             labelPlacement={"outside"}
-            type="email"
+            type="text"
             placeholder="e.g. alex@email.com"
             startContent={
               <div>
-                <img src="/icon-email.svg" alt="email icon" />
+                <img
+                  src="/icon-email.svg"
+                  alt="email icon"
+                  className="min-h-4 min-w-4"
+                />
               </div>
             }
             classNames={{
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.email
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
+            // div to show errors
+            endContent={
+              errors.password ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.password.message}
+                </div>
+              ) : null
+            }
+            {...register("password")}
             radius="sm"
             label="Create password"
             labelPlacement={"outside"}
@@ -52,16 +113,30 @@ function SignUp() {
             placeholder="At least 8 characters"
             startContent={
               <div>
-                <img src="/icon-password.svg" alt="icon password" />
+                <img
+                  src="/icon-password.svg"
+                  alt="icon password"
+                  className="min-h-4 min-w-4"
+                />
               </div>
             }
             classNames={{
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.password
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <Input
+            // div to show errors
+            endContent={
+              errors.confirmPassword ? (
+                <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
+                  {errors.confirmPassword.message}
+                </div>
+              ) : null
+            }
+            {...register("confirmPassword")}
             radius="sm"
             label="Confirm password"
             labelPlacement={"outside"}
@@ -69,20 +144,29 @@ function SignUp() {
             placeholder="At least 8 characters"
             startContent={
               <div>
-                <img src="/icon-password.svg" alt="icon password" />
+                <img
+                  src="/icon-password.svg"
+                  alt="icon password"
+                  className="min-h-4 min-w-4"
+                />
               </div>
             }
             classNames={{
               input: "opacity-75",
-              inputWrapper:
-                "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
+              inputWrapper: errors.confirmPassword
+                ? "border border-[#FF3939] text-[#FF3939]  rounded-md focus-within:border-[#FF3939]"
+                : "border border-[#E0E0E0]  rounded-md focus-within:border-[#633CFF] focus-within:shadow-2xl focus-within:shadow-custom-blue",
             }}
           />
           <p className="font-light text-sm text-[#737373] -my-4">
             Password must contain at least 8 characters
           </p>
-          <Button className="dark bg-[#633CFF] rounded-md font-medium">
-            Sign up
+          <Button
+            className="dark bg-[#633CFF] rounded-md font-medium"
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Signing up..." : "Sign up"}
           </Button>
         </div>
         <div className="relative mt-6">
