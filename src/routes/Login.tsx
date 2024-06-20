@@ -124,7 +124,6 @@ function Login() {
             className="dark bg-[#633CFF] rounded-md font-medium"
           >
             {isSubmitting ? "Login ..." : "Login"}
-            Login
           </Button>
         </div>
         <div className="relative mt-6">
