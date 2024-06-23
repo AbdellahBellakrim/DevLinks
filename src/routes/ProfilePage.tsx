@@ -271,7 +271,9 @@ function ProfilePage() {
               style={{ display: "none" }}
               onChange={profilePictureOnChange}
             />
-            {imagePreview === null ? (
+            {imagePreview === null ||
+            imagePreview === "" ||
+            imagePreview === undefined ? (
               <>
                 <div className="w-fit h-fit bg-white bg-opacity-5">
                   <img

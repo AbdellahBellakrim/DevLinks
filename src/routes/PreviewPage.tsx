@@ -100,7 +100,7 @@ function PreviewPage({ username }: { username: string }) {
           </p>
           <div className="w-full  gap-5 flex flex-col items-center">
             {previewUser !== null &&
-              previewUser.links.length &&
+              previewUser.links.length > 0 &&
               previewUser.links.map((link: previewLinkType) => {
                 return (
                   <SocialButton

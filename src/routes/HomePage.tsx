@@ -18,7 +18,7 @@ function HomePage() {
         </div>
         <h1 className="text-4xl font-semibold text-[#333333]">devLinks</h1>
       </div>
-      <div className="w-full flex justify-center items-center gap-7 overflow-hidden">
+      <div className="w-full flex justify-center items-center gap-7 overflow-hidden flex-col md:flex-row">
         <Button
           className="dark bg-[#633CFF] rounded-md font-medium"
           onClick={() => navigate("/login")}
@@ -30,6 +30,9 @@ function HomePage() {
           onClick={() => navigate("/signup")}
         >
           Sign Up
+        </Button>
+        <Button className="border border-[#633CFF] text-[#633CFF]  bg-background rounded-md font-medium">
+          Auth0
         </Button>
       </div>
       <div className="absolute w-screen h-fit py-5 px-4 bottom-0 border-t border-divider flex justify-center items-center gap-3">
