@@ -1,8 +1,22 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { Button } from "@nextui-org/react";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
   const navigate = useNavigate();
+  const { loginWithRedirect } = useAuth0();
+
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/links",
+      },
+      authorizationParams: {
+        screen_hint: "signup",
+      },
+    });
+  };
+
   return (
     <div className="w-full h-full flex justify-center items-center flex-col gap-10 md:max-w-[920px] mx-auto p-4 relative">
       <div className="flex justify-center items-center gap-1 w-full">
@@ -21,7 +35,10 @@ function HomePage() {
       <div className="border-b border-divider p-4 text-[#737373]">
         <p>
           For Now you can login and signup only using Auth0,
-          <span className="cursor-pointer hover:underline hover:text-[#633CFF]">
+          <span
+            className="cursor-pointer hover:underline hover:text-[#633CFF]"
+            onClick={handleLogin}
+          >
             {" "}
             click here.
           </span>
@@ -40,9 +57,6 @@ function HomePage() {
         >
           Sign Up
         </Button>
-        {/* <Button className="border border-[#633CFF] text-[#633CFF]  bg-background rounded-md font-medium">
-          Auth0
-        </Button> */}
       </div>
 
       <div className="absolute w-screen h-fit py-5 px-4 bottom-0 border-t border-divider flex justify-center items-center gap-3">

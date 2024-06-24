@@ -12,6 +12,7 @@ import {
   DropdownTrigger,
   Navbar,
 } from "@nextui-org/react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 type PageType = "links" | "profile" | "preview" | string;
 
@@ -21,6 +22,15 @@ function NavBar() {
   const [page, setPage] = useState<PageType>("links");
   const [isLinksHovered, setIsLinksHovered] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
+  const { logout } = useAuth0();
+
+  const handleLogout = () => {
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  };
 
   const User = useReactiveVar(userState);
 
@@ -115,12 +125,17 @@ function NavBar() {
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
-            <DropdownItem key="profile" className="h-14 gap-2">
+            <DropdownItem
+              key="profile"
+              className="h-14 gap-2"
+              textValue="signin"
+            >
               <p className="font-semibold">Signed in as</p>
               <p className="font-semibold">{User?.email}</p>
             </DropdownItem>
             <DropdownItem
               key="Preview"
+              textValue="preview"
               color="secondary"
               onClick={() => {
                 setPage("preview");
@@ -129,7 +144,7 @@ function NavBar() {
             >
               Preview
             </DropdownItem>
-            <DropdownItem key="logout" color="danger">
+            <DropdownItem key="logout" color="danger" onClick={handleLogout}>
               Log Out
             </DropdownItem>
           </DropdownMenu>

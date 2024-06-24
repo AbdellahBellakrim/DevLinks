@@ -7,12 +7,16 @@ import { GET_USER_BY_ID } from "../apollo-client/queries";
 import { useEffect } from "react";
 import Loading from "../components/Loading";
 import Error from "../components/Error";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function DashboardLayout() {
   // get data of user from hasura cloud
   const { loading, error, data } = useQuery(GET_USER_BY_ID, {
-    variables: { id: 3 },
+    variables: { id: 8 },
   });
+
+  const { user } = useAuth0();
+  console.log(user);
 
   // set user data to userState
   useEffect(() => {
