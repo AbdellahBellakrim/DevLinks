@@ -18,6 +18,15 @@ function HomePage() {
         </div>
         <h1 className="text-4xl font-semibold text-[#333333]">devLinks</h1>
       </div>
+      <div className="border-b border-divider p-4 text-[#737373]">
+        <p>
+          For Now you can login and signup only using Auth0,
+          <span className="cursor-pointer hover:underline hover:text-[#633CFF]">
+            {" "}
+            click here.
+          </span>
+        </p>
+      </div>
       <div className="w-full flex justify-center items-center gap-7 overflow-hidden flex-col md:flex-row">
         <Button
           className="dark bg-[#633CFF] rounded-md font-medium"
@@ -31,10 +40,11 @@ function HomePage() {
         >
           Sign Up
         </Button>
-        <Button className="border border-[#633CFF] text-[#633CFF]  bg-background rounded-md font-medium">
+        {/* <Button className="border border-[#633CFF] text-[#633CFF]  bg-background rounded-md font-medium">
           Auth0
-        </Button>
+        </Button> */}
       </div>
+
       <div className="absolute w-screen h-fit py-5 px-4 bottom-0 border-t border-divider flex justify-center items-center gap-3">
         <p className="text-[#737373]">
           By{" "}

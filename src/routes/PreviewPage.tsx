@@ -1,7 +1,7 @@
 import { Button } from "@nextui-org/react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { GET_USER_DATA_BY_USERNAME } from "../apollo-client/queries";
+import { GET_USER_DATA_BY_EMAIL } from "../apollo-client/queries";
 import { useQuery } from "@apollo/client";
 import Loading from "../components/Loading";
 import Error from "../components/Error";
@@ -9,12 +9,12 @@ import { useEffect, useState } from "react";
 import SocialButton from "../components/SocialButton";
 import { previewLinkType, previewUserType } from "../apollo-client/types";
 
-function PreviewPage({ username }: { username: string }) {
+function PreviewPage({ email }: { email: string }) {
   const [previewUser, setPreviewUser] = useState<previewUserType | null>(null);
   const navigate = useNavigate();
 
-  const { loading, error, data } = useQuery(GET_USER_DATA_BY_USERNAME, {
-    variables: { username },
+  const { loading, error, data } = useQuery(GET_USER_DATA_BY_EMAIL, {
+    variables: { email },
   });
 
   useEffect(() => {
@@ -34,7 +34,7 @@ function PreviewPage({ username }: { username: string }) {
   if (error) return <Error message={error?.message} />;
 
   if (!data || !data.devlinks_user || data.devlinks_user.length === 0) {
-    return <Error message={`No data found for user: ${username}`} />;
+    return <Error message={`No data found for user: ${email}`} />;
   }
 
   return (

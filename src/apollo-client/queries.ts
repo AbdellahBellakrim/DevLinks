@@ -9,7 +9,6 @@ export const GET_USER_BY_ID = gql`
       id
       lastname
       profile_picture
-      username
       links {
         id
         link
@@ -19,9 +18,9 @@ export const GET_USER_BY_ID = gql`
     }
   }
 `;
-export const GET_USER_DATA_BY_USERNAME = gql`
-  query MyQuery($username: String!) {
-    devlinks_user(where: { username: { _eq: $username } }) {
+export const GET_USER_DATA_BY_EMAIL = gql`
+  query MyQuery($email: String!) {
+    devlinks_user(where: { email: { _eq: $email } }) {
       email
       firstname
       lastname

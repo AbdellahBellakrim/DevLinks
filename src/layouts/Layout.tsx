@@ -21,7 +21,6 @@ function DashboardLayout() {
         id: data.devlinks_user_by_pk.id,
         firstname: data.devlinks_user_by_pk.firstname,
         lastname: data.devlinks_user_by_pk.lastname,
-        username: data.devlinks_user_by_pk.username,
         email: data.devlinks_user_by_pk.email,
         profile_picture: data.devlinks_user_by_pk.profile_picture,
         links: [
