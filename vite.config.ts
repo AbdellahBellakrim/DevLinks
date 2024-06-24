@@ -14,9 +14,5 @@ export default defineConfig({
     port: 3000, // Custom port
     strictPort: true, // If true, the server will exit if the specified port is already in use
     open: false, // Open the browser automatically
-    https: {
-      key: fs.readFileSync(path.resolve(__dirname, "localhost.key")),
-      cert: fs.readFileSync(path.resolve(__dirname, "localhost.crt")),
-    },
   },
 });
