@@ -8,10 +8,12 @@ import Error from "../components/Error";
 import { useEffect, useState } from "react";
 import SocialButton from "../components/SocialButton";
 import { previewLinkType, previewUserType } from "../apollo-client/types";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function PreviewPage({ email }: { email: string }) {
   const [previewUser, setPreviewUser] = useState<previewUserType | null>(null);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth0();
 
   const { loading, error, data } = useQuery(GET_USER_DATA_BY_EMAIL, {
     variables: { email },
@@ -42,44 +44,46 @@ function PreviewPage({ email }: { email: string }) {
       {/* bacground cover  */}
       <div className="absolute z-[-1] w-full h-[357px] bg-[#633CFF] rounded-b-2xl inset-0 top-0 hidden sm:block"></div>
       {/* nav */}
-      <div className="sticky sm:absolute z-10 inset-0 top-0 w-full sm:w-[calc(100%-48px)] h-[78px] bg-[#FAFAFA]  sm:rounded-xl m-0 sm:m-6 p-4 px-7  flex justify-between items-center gap-4">
-        {/* button */}
-        <div
-          onClick={() => {
-            navigate("/links");
-          }}
-          className="w-[160px] h-full border-1 border-[#633CFF] font-semibold text-sm text-[#633CFF] rounded-md  flex items-center justify-center cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10"
-        >
-          Back to Editor
-        </div>
-        {/* button */}
-        <Button
-          onClick={() => {
-            const url = window.location.href;
-            navigator.clipboard
-              .writeText(url)
-              .then(() => {
-                toast("The link has been copied to your clipboard!", {
-                  position: "bottom-center",
-                  duration: 2000,
-                  style: {
-                    width: "fit-content",
-                    maxWidth: "406px",
-                    padding: "16px 24px",
-                    color: "#FAFAFA",
-                    backgroundColor: "#333333",
-                  },
+      {isAuthenticated && (
+        <div className="sticky sm:absolute z-10 inset-0 top-0 w-full sm:w-[calc(100%-48px)] h-[78px] bg-[#FAFAFA]  sm:rounded-xl m-0 sm:m-6 p-4 px-7  flex justify-between items-center gap-4">
+          {/* button */}
+          <div
+            onClick={() => {
+              navigate("/links");
+            }}
+            className="w-[160px] h-full border-1 border-[#633CFF] font-semibold text-sm text-[#633CFF] rounded-md  flex items-center justify-center cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10"
+          >
+            Back to Editor
+          </div>
+          {/* button */}
+          <Button
+            onClick={() => {
+              const url = window.location.href;
+              navigator.clipboard
+                .writeText(url)
+                .then(() => {
+                  toast("The link has been copied to your clipboard!", {
+                    position: "bottom-center",
+                    duration: 2000,
+                    style: {
+                      width: "fit-content",
+                      maxWidth: "406px",
+                      padding: "16px 24px",
+                      color: "#FAFAFA",
+                      backgroundColor: "#333333",
+                    },
+                  });
+                })
+                .catch((err) => {
+                  console.error("Failed to copy URL: ", err);
                 });
-              })
-              .catch((err) => {
-                console.error("Failed to copy URL: ", err);
-              });
-          }}
-          className="w-[160px] h-full  font-semibold text-sm  rounded-md  flex items-center justify-center dark bg-[#633CFF]"
-        >
-          Share Link
-        </Button>
-      </div>
+            }}
+            className="w-[160px] h-full  font-semibold text-sm  rounded-md  flex items-center justify-center dark bg-[#633CFF]"
+          >
+            Share Link
+          </Button>
+        </div>
+      )}
       {/* cart */}
       <div className="absolute inset-0 w-full sm:w-[349px] h-fit sm:h-[569px] sm:rounded-2xl bg-[#FAFAFA] sm:shadow-md mt-[78px] sm:mt-52 mb-6 mx-auto py-12 px-8  md:px-14">
         <div className="w-full h-full  sm:overflow-auto sm:scrollbar-hide rounded-lg">
@@ -87,7 +91,7 @@ function PreviewPage({ email }: { email: string }) {
             {previewUser?.profile_picture && (
               <img
                 className="w-full h-full object-cover border-5 border-[#633CFF] rounded-full"
-                src={previewUser?.profile_picture}
+                src={previewUser?.profile_picture || "profile-picture.svg"}
                 alt="profile picture"
               />
             )}

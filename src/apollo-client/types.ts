@@ -7,6 +7,7 @@ export type LinkType = {
 
 export type userType = {
   id: number;
+  auth_id: string;
   firstname: string;
   lastname: string;
   email: string;

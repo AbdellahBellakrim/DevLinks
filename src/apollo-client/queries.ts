@@ -1,9 +1,10 @@
 // src/queries.js
 import { gql } from "@apollo/client";
 
-export const GET_USER_BY_ID = gql`
-  query GetUserWithLinks($id: Int!) {
-    devlinks_user_by_pk(id: $id) {
+export const GET_USER_BY_AUTH_ID = gql`
+  query ($auth_id: String!) {
+    devlinks_user(where: { auth_id: { _eq: $auth_id } }, limit: 1) {
+      auth_id
       email
       firstname
       id
@@ -13,7 +14,6 @@ export const GET_USER_BY_ID = gql`
         id
         link
         platform
-        user_id
       }
     }
   }

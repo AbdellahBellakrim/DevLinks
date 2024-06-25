@@ -18,7 +18,7 @@ function Mockup() {
           <div className="absolute bg-white bg-opacity-5 rounded-full h-24 w-24 inset-0 top-[65px] left-[105px]">
             <img
               className="bg-white bg-opacity-5  h-full w-full z-0 rounded-full border-4 border-[#633CFF]"
-              src={User?.profile_picture || "illustration-phone-mockup.svg"}
+              src={User?.profile_picture || "profile-picture.svg"}
               alt="profile picture"
               loading="lazy"
             />

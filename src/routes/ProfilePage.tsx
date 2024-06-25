@@ -291,7 +291,7 @@ function ProfilePage() {
               <>
                 <img
                   className="min-w-full min-h-full z-0 rounded-md bg-white bg-opacity-5  group-hover:scale-105 transition-transform duration-300 ease-in-out"
-                  src={imagePreview}
+                  src={imagePreview || "profile-picture.svg"}
                   alt="profile_picture"
                   loading="lazy"
                   style={{

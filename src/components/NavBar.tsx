@@ -121,7 +121,7 @@ function NavBar() {
               as="button"
               className="transition-transform"
               name="Jason Hughes"
-              src={User?.profile_picture || ""}
+              src={User?.profile_picture || "profile-picture.svg"}
             />
           </DropdownTrigger>
           <DropdownMenu aria-label="Profile Actions" variant="flat">
