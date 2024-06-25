@@ -1,31 +1,35 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import Mockup from "../components/Mockup";
 import { useQuery, useReactiveVar } from "@apollo/client";
 import { userState } from "../apollo-client/apollo-client";
-import { GET_USER_BY_ID } from "../apollo-client/queries";
+import { GET_USER_BY_AUTH_ID } from "../apollo-client/queries";
 import { useEffect } from "react";
 import Loading from "../components/Loading";
 import Error from "../components/Error";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function DashboardLayout() {
-  // get data of user from hasura cloud
-  const { loading, error, data } = useQuery(GET_USER_BY_ID, {
-    variables: { id: 3 },
-  });
+  const { user, isAuthenticated, isLoading } = useAuth0();
+  const navigate = useNavigate();
 
+  // get data of user from hasura cloud
+  const { loading, error, data } = useQuery(GET_USER_BY_AUTH_ID, {
+    variables: { auth_id: user?.sub },
+  });
   // set user data to userState
   useEffect(() => {
-    if (data) {
+    if (data && user && isAuthenticated) {
+      const Copyuser = data.devlinks_user[0];
       userState({
-        id: data.devlinks_user_by_pk.id,
-        firstname: data.devlinks_user_by_pk.firstname,
-        lastname: data.devlinks_user_by_pk.lastname,
-        username: data.devlinks_user_by_pk.username,
-        email: data.devlinks_user_by_pk.email,
-        profile_picture: data.devlinks_user_by_pk.profile_picture,
+        id: Copyuser.id,
+        auth_id: Copyuser.auth_id,
+        firstname: Copyuser.firstname,
+        lastname: Copyuser.lastname,
+        email: Copyuser.email,
+        profile_picture: Copyuser.profile_picture,
         links: [
-          ...data.devlinks_user_by_pk.links.map(
+          ...Copyuser.links.map(
             ({
               id,
               link,
@@ -41,12 +45,18 @@ function DashboardLayout() {
         ].sort((a, b) => a.id - b.id),
       });
     }
-  }, [data]);
+  }, [data, user, isAuthenticated]);
 
   // get user data from userState
   const User = useReactiveVar(userState);
 
-  if (loading || !User) return <Loading />;
+  if (!isAuthenticated && !isLoading) {
+    setTimeout(() => navigate("/"), 2000);
+    return (
+      <Error message="Hold up, stranger! Time to introduce yourself. Login or sign up to continue." />
+    );
+  }
+  if (loading || !User || isLoading) return <Loading />;
   if (error) return <Error message={error?.message} />;
   else {
     return (

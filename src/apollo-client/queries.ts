@@ -1,27 +1,26 @@
 // src/queries.js
 import { gql } from "@apollo/client";
 
-export const GET_USER_BY_ID = gql`
-  query GetUserWithLinks($id: Int!) {
-    devlinks_user_by_pk(id: $id) {
+export const GET_USER_BY_AUTH_ID = gql`
+  query ($auth_id: String!) {
+    devlinks_user(where: { auth_id: { _eq: $auth_id } }, limit: 1) {
+      auth_id
       email
       firstname
       id
       lastname
       profile_picture
-      username
       links {
         id
         link
         platform
-        user_id
       }
     }
   }
 `;
-export const GET_USER_DATA_BY_USERNAME = gql`
-  query MyQuery($username: String!) {
-    devlinks_user(where: { username: { _eq: $username } }) {
+export const GET_USER_DATA_BY_EMAIL = gql`
+  query MyQuery($email: String!) {
+    devlinks_user(where: { email: { _eq: $email } }) {
       email
       firstname
       lastname

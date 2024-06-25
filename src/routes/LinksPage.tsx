@@ -12,7 +12,7 @@ import {
   DELETE_DEVLINKS_LINKS,
   UPSERT_ONE_LINK,
 } from "../apollo-client/mutations";
-import { GET_USER_BY_ID } from "../apollo-client/queries";
+import { GET_USER_BY_AUTH_ID } from "../apollo-client/queries";
 import { LinkType } from "../apollo-client/types";
 
 const schema = z.object({
@@ -42,15 +42,15 @@ export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
   const User = useReactiveVar(userState);
-  const { refetch } = useQuery(GET_USER_BY_ID, {
-    variables: { id: User?.id },
+  const { refetch } = useQuery(GET_USER_BY_AUTH_ID, {
+    variables: { auth_id: User?.auth_id },
   });
   const [upsertLinks] = useMutation(UPSERT_ONE_LINK, {
-    refetchQueries: [GET_USER_BY_ID],
+    refetchQueries: [GET_USER_BY_AUTH_ID],
     awaitRefetchQueries: true,
   });
   const [deleteLinks] = useMutation(DELETE_DEVLINKS_LINKS, {
-    refetchQueries: [GET_USER_BY_ID],
+    refetchQueries: [GET_USER_BY_AUTH_ID],
     awaitRefetchQueries: true,
   });
 

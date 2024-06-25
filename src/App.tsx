@@ -11,13 +11,13 @@ import { Toaster } from "react-hot-toast";
 
 function PreviewPageWrapper() {
   const [searchParams] = useSearchParams();
-  const username = searchParams.get("username");
+  const email = searchParams.get("email");
 
-  if (!username) {
+  if (!email) {
     return <Navigate to="/notfound" />;
   }
 
-  return <PreviewPage username={username} />;
+  return <PreviewPage email={email} />;
 }
 
 function App() {

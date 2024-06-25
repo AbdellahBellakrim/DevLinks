@@ -4,6 +4,15 @@ import IconProfileHeader from "./Icons/ProfileIcon";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useReactiveVar } from "@apollo/client";
 import { userState } from "../apollo-client/apollo-client";
+import {
+  Avatar,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Navbar,
+} from "@nextui-org/react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 type PageType = "links" | "profile" | "preview" | string;
 
@@ -13,6 +22,15 @@ function NavBar() {
   const [page, setPage] = useState<PageType>("links");
   const [isLinksHovered, setIsLinksHovered] = useState(false);
   const [isProfileHovered, setIsProfileHovered] = useState(false);
+  const { logout } = useAuth0();
+
+  const handleLogout = () => {
+    logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
+  };
 
   const User = useReactiveVar(userState);
 
@@ -23,11 +41,24 @@ function NavBar() {
     setPage(location.pathname.substring(1));
   }, [location]);
   return (
-    <div className="bg-white w-screen h-[74px] shadow-sm mb-4 md:mb-6 fixed top-0 z-10">
-      <div className="w-full h-full max-w-[1440px] mx-auto flex justify-between items-center gap-3 p-4 px-6 z-10">
+    <Navbar
+      className="bg-white w-screen h-[74px] shadow-sm mb-4 md:mb-6 fixed top-0 z-10"
+      classNames={{
+        wrapper: "m-0 p-0",
+        brand: "m-0 p-0",
+        content: "m-0 p-0",
+        item: "m-0 p-0",
+        menu: "m-0 p-0", // the one that appears when the menu is open
+        menuItem: "m-0 p-0",
+      }}
+    >
+      <div className="w-full h-full max-w-[1440px] mx-auto flex justify-between items-center gap-3  px-4  z-10">
         <div
           className="flex justify-center items-center gap-1 cursor-pointer"
-          onClick={() => {}}
+          onClick={() => {
+            setPage("links");
+            navigate("/links");
+          }}
         >
           <div className="w-fit h-fit bg-white bg-opacity-5">
             <img
@@ -83,30 +114,43 @@ function NavBar() {
             <p className="hidden sm:block">Profile Details</p>
           </div>
         </div>
-        <div>
-          {/* button */}
-          <div
-            onClick={() => {
-              setPage("preview");
-              navigate(`/preview?username=${User?.username}`);
-            }}
-            className="border-1 border-[#633CFF] font-medium text-sm text-[#633CFF] rounded-md  flex items-center justify-center px-4 sm:px-6 py-3 gap-1 cursor-pointer hover:opacity-80 hover:bg-[#633CFF] hover:bg-opacity-10"
-          >
-            <div className="w-fit h-fit bg-white bg-opacity-5 block sm:hidden">
-              <img
-                className="bg-white bg-opacity-5"
-                src="icon-preview-header.svg"
-                alt="icon-preview-header.svg"
-                loading="lazy"
-                width={20}
-                height={20}
-              />
-            </div>
-            <p className="hidden sm:block">Preview</p>
-          </div>
-        </div>
+        <Dropdown placement="bottom-end">
+          <DropdownTrigger className="min-w-8 min-h-8 rounded-full">
+            <Avatar
+              isBordered
+              as="button"
+              className="transition-transform"
+              name="Jason Hughes"
+              src={User?.profile_picture || "profile-picture.svg"}
+            />
+          </DropdownTrigger>
+          <DropdownMenu aria-label="Profile Actions" variant="flat">
+            <DropdownItem
+              key="profile"
+              className="h-14 gap-2"
+              textValue="signin"
+            >
+              <p className="font-semibold">Signed in as</p>
+              <p className="font-semibold">{User?.email}</p>
+            </DropdownItem>
+            <DropdownItem
+              key="Preview"
+              textValue="preview"
+              color="secondary"
+              onClick={() => {
+                setPage("preview");
+                navigate(`/preview?email=${User?.email}`);
+              }}
+            >
+              Preview
+            </DropdownItem>
+            <DropdownItem key="logout" color="danger" onClick={handleLogout}>
+              Log Out
+            </DropdownItem>
+          </DropdownMenu>
+        </Dropdown>
       </div>
-    </div>
+    </Navbar>
   );
 }
 

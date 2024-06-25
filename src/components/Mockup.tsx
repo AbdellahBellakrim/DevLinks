@@ -18,22 +18,24 @@ function Mockup() {
           <div className="absolute bg-white bg-opacity-5 rounded-full h-24 w-24 inset-0 top-[65px] left-[105px]">
             <img
               className="bg-white bg-opacity-5  h-full w-full z-0 rounded-full border-4 border-[#633CFF]"
-              src={User?.profile_picture || "illustration-phone-mockup.svg"}
+              src={User?.profile_picture || "profile-picture.svg"}
               alt="profile picture"
               loading="lazy"
             />
           </div>
         )}
-        <div className="absolute   w-[237px] h-[420px] top-[162px] left-[35px] pt-5">
-          {User?.firstname && User?.lastname && User?.email && (
-            <div className="w-full flex justify-center items-center flex-col bg-white py-2">
-              <h1 className="font-semibold text-lg mb-2">{`${User?.firstname} ${User?.lastname}`}</h1>
-              <p className="font-normal text-sm text-[#737373]">
-                {User?.email}
-              </p>
-            </div>
-          )}
-          <div className="mt-[25px] flex flex-col gap-5">
+        <div className="absolute   w-[237px] h-[420px] top-[162px] left-[35px] pt-5 ">
+          <div className="w-full flex justify-center items-center flex-col  py-2 bg-white min-h-16">
+            {User?.firstname && User?.lastname && User?.email && (
+              <>
+                <h1 className="font-semibold text-lg mb-2">{`${User?.firstname} ${User?.lastname}`}</h1>
+                <p className="font-normal text-sm text-[#737373]">
+                  {User?.email}
+                </p>
+              </>
+            )}
+          </div>
+          <div className="mt-[30px] flex flex-col gap-5">
             {User &&
               User.links.length > 0 &&
               User.links
