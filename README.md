@@ -99,7 +99,6 @@ npm run dev
 Ensure you set up the following environment variables in your `.env` file:
 
 ```
-plaintextCopy code
 NEXT_PUBLIC_HASURA_GRAPHQL_URL=<Your Hasura GraphQL URL>
 NEXT_PUBLIC_AUTH0_DOMAIN=<Your Auth0 Domain>
 NEXT_PUBLIC_AUTH0_CLIENT_ID=<Your Auth0 Client ID>
