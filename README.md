@@ -2,6 +2,14 @@
 
 DevLinks is a modern link-sharing application that allows users to manage and share their favorite links effortlessly. The app features functionalities such as link CRUD operations, profile management, drag-and-drop reordering, and responsive design. It is built with a powerful tech stack including Hasura Cloud, PostgreSQL, Auth0, React, Apollo Client, TailwindCSS, and NextUI.
 
+## Live Demo
+
+You can find a live version of DevLinks hosted at:
+
+[https://dev-links-beta-five.vercel.app/](https://dev-links-beta-five.vercel.app/)
+
+Feel free to explore the application and its features!
+
 ## Table of Contents
 
 - [Features](#features)
@@ -58,7 +66,6 @@ DevLinks is a modern link-sharing application that allows users to manage and sh
 1. Clone the repository:
 
 ```bash
-bashCopy code
 git clone https://github.com/yourusername/devlinks.git
 cd devlinks
 
@@ -67,7 +74,6 @@ cd devlinks
 1. Rename `.env.example` to `.env` and add your credentials:
 
 ```bash
-bashCopy code
 mv .env.example .env
 
 ```
@@ -75,7 +81,6 @@ mv .env.example .env
 1. Install dependencies:
 
 ```bash
-bashCopy code
 npm install
 
 ```
@@ -83,7 +88,6 @@ npm install
 1. Run the development server:
 
 ```bash
-bashCopy code
 npm run dev
 
 ```
@@ -114,3 +118,7 @@ Once the application is running, you can:
 - Add and update profile details.
 - Preview your profile and copy the link.
 - Register and log in to manage your links and profile.
+
+## Contact
+
+Feel free to reach out if you have any questions, suggestions, or feedback about this project. I'm always open to discussing DevLinks and potential improvements or collaborations.
