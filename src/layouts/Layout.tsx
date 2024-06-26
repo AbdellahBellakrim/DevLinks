@@ -20,16 +20,15 @@ function DashboardLayout() {
   // set user data to userState
   useEffect(() => {
     if (data && user && isAuthenticated) {
-      const Copyuser = data.devlinks_user[0];
       userState({
-        id: Copyuser.id,
-        auth_id: Copyuser.auth_id,
-        firstname: Copyuser.firstname,
-        lastname: Copyuser.lastname,
-        email: Copyuser.email,
-        profile_picture: Copyuser.profile_picture,
+        id: data.devlinks_user[0].id,
+        auth_id: data.devlinks_user[0].auth_id,
+        firstname: data.devlinks_user[0].firstname,
+        lastname: data.devlinks_user[0].lastname,
+        email: data.devlinks_user[0].email,
+        profile_picture: data.devlinks_user[0].profile_picture,
         links: [
-          ...Copyuser.links.map(
+          ...data.devlinks_user[0].links.map(
             ({
               id,
               link,
