@@ -35,7 +35,7 @@ function Mockup() {
               </>
             )}
           </div>
-          <div className="mt-[30px] flex flex-col gap-5">
+          <div className="mt-[24px] flex flex-col gap-5">
             {User &&
               User.links.length > 0 &&
               User.links

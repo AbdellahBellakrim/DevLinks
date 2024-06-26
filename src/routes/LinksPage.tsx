@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useReactiveVar } from "@apollo/client";
+import { useMutation, useReactiveVar } from "@apollo/client";
 import { Button } from "@nextui-org/react";
 import { userState } from "../apollo-client/apollo-client";
 import LinkCard from "../components/LinkCard";
@@ -42,15 +42,18 @@ export type FormFields = z.infer<typeof schema>;
 
 function LinksPage() {
   const User = useReactiveVar(userState);
-  const { refetch } = useQuery(GET_USER_BY_AUTH_ID, {
-    variables: { auth_id: User?.auth_id },
-  });
+
   const [upsertLinks] = useMutation(UPSERT_ONE_LINK, {
-    refetchQueries: [GET_USER_BY_AUTH_ID],
+    refetchQueries: [
+      { query: GET_USER_BY_AUTH_ID, variables: { auth_id: User?.auth_id } },
+    ],
     awaitRefetchQueries: true,
   });
+
   const [deleteLinks] = useMutation(DELETE_DEVLINKS_LINKS, {
-    refetchQueries: [GET_USER_BY_AUTH_ID],
+    refetchQueries: [
+      { query: GET_USER_BY_AUTH_ID, variables: { auth_id: User?.auth_id } },
+    ],
     awaitRefetchQueries: true,
   });
 
@@ -139,33 +142,24 @@ function LinksPage() {
         };
         await upsertLinks({ variables });
       }
-
-      const { data: newData } = await refetch();
-      if (newData) {
-        reset(
-          {
-            links: [
-              ...newData.devlinks_user_by_pk.links.map(
-                ({
-                  id,
-                  link,
-                  platform,
-                  user_id,
-                }: {
-                  id: number;
-                  link: string;
-                  platform: string;
-                  user_id: number;
-                }) => ({ id, link, platform, user_id })
-              ),
-            ].sort((a, b) => a.id - b.id),
-          },
-          {
-            keepDirty: false,
-            keepDirtyValues: false,
-          }
-        );
-      }
+      reset(
+        {
+          links: data.links,
+        },
+        {
+          keepValues: false,
+          keepDefaultValues: false,
+          keepErrors: false,
+          keepDirty: false,
+          keepDirtyValues: false,
+          keepIsSubmitSuccessful: false,
+          keepIsValidating: false,
+          keepIsSubmitted: false,
+          keepTouched: false,
+          keepIsValid: false,
+          keepSubmitCount: false,
+        }
+      );
 
       toast.success("Links saved successfully", {
         position: "bottom-center",
