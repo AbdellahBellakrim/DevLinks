@@ -5,6 +5,10 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+// const domain = import.meta.env.VITE_AUTH0_DOMAIN;
+// const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
+// const redirectUri = import.meta.env.VITE_AUTH0_CALLBACK_URL;
+
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
 
 const schema = z
@@ -39,17 +43,7 @@ function SignUp() {
 
   const onSubmit = async (data: FormFields) => {
     try {
-      await loginWithRedirect({
-        appState: {
-          returnTo: "/links",
-        },
-        authorizationParams: {
-          screen_hint: "signup",
-          connection: "DevLinks",
-          email: data.email,
-          password: data.password,
-        },
-      });
+      console.log(data);
     } catch (error) {
       console.error(error);
     }
