@@ -1,3 +1,4 @@
+import { useAuth0 } from "@auth0/auth0-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input } from "@nextui-org/react";
 import { useForm } from "react-hook-form";
@@ -11,6 +12,7 @@ const schema = z.object({
 
 function Login() {
   const navigate = useNavigate();
+  const { loginWithRedirect } = useAuth0();
 
   type FormFields = z.infer<typeof schema>;
 
@@ -32,7 +34,10 @@ function Login() {
       className="w-screen h-screen  bg-[#FAFAFA] sm:flex sm:justify-center sm:items-center sm:flex-col overflow-y-auto"
     >
       <div className="w-full max-w-[467px] sm:w-[476px] min-h-[573px] sm:bg-white rounded-md sm:shadow-md p-8 ">
-        <div className="flex sm:justify-center sm:items-center gap-1 w-full mb-[51px]">
+        <div
+          className="flex sm:justify-center sm:items-center gap-1 w-full mb-[51px] cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <div className="w-fit h-fit bg-white bg-opacity-5">
             <img
               className="bg-white bg-opacity-5"
@@ -138,6 +143,7 @@ function Login() {
         </div>
         <div className="flex gap-1">
           <Button
+            disabled={true}
             className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
             variant="solid"
             startContent={
@@ -151,6 +157,7 @@ function Login() {
             Github
           </Button>
           <Button
+            disabled={true}
             className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
             variant="solid"
             startContent={
@@ -165,6 +172,17 @@ function Login() {
           </Button>
         </div>
         <Button
+          onClick={async () => {
+            await loginWithRedirect({
+              appState: {
+                returnTo: "/links",
+              },
+              authorizationParams: {
+                screen_hint: "signup",
+                connection: "google-oauth2",
+              },
+            });
+          }}
           className="w-full rounded-md font-medium  mt-3 text-[#333333] bg-black bg-opacity-5 border border-[#E0E0E0]"
           variant="solid"
           startContent={
