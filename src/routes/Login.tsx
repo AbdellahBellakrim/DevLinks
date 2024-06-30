@@ -25,7 +25,21 @@ function Login() {
   });
 
   const onSubmit = async (data: FormFields) => {
-    console.log(data);
+    try {
+      await loginWithRedirect({
+        appState: {
+          returnTo: "/links",
+        },
+        authorizationParams: {
+          screen_hint: "login",
+          connection: "DevLinks",
+          email: data.email,
+          password: data.password,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

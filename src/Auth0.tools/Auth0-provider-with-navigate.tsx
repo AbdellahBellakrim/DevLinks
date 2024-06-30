@@ -30,6 +30,8 @@ const Auth0ProviderWithNavigate: React.FC<Auth0ProviderWithNavigateProps> = ({
       clientId={clientId}
       authorizationParams={{
         redirect_uri: redirectUri,
+        audience: `https://${domain}/api/v2/`,
+        scope: "openid profile email",
       }}
       onRedirectCallback={onRedirectCallback}
       useRefreshTokens={true}

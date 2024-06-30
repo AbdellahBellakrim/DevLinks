@@ -6,7 +6,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { NextUIProvider } from "@nextui-org/react";
 import { ApolloProvider } from "@apollo/client";
 import client from "./apollo-client/apollo-client.ts";
-import Auth0ProviderWithNavigate from "./providers/Auth0-provider-with-navigate.tsx";
+import Auth0ProviderWithNavigate from "./Auth0.tools/Auth0-provider-with-navigate.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

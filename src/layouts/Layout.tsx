@@ -10,7 +10,7 @@ import Error from "../components/Error";
 import { useAuth0 } from "@auth0/auth0-react";
 
 function DashboardLayout() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, error: auth0Error } = useAuth0();
   const navigate = useNavigate();
 
   // get data of user from hasura cloud
@@ -49,6 +49,7 @@ function DashboardLayout() {
   // get user data from userState
   const User = useReactiveVar(userState);
 
+  if (auth0Error) return <Error message={auth0Error.message} />;
   if (!isAuthenticated && !isLoading) {
     setTimeout(() => navigate("/"), 2000);
     return (

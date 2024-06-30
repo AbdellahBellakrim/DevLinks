@@ -38,7 +38,21 @@ function SignUp() {
   });
 
   const onSubmit = async (data: FormFields) => {
-    console.log(data);
+    try {
+      await loginWithRedirect({
+        appState: {
+          returnTo: "/links",
+        },
+        authorizationParams: {
+          screen_hint: "signup",
+          connection: "DevLinks",
+          email: data.email,
+          password: data.password,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
