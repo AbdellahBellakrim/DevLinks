@@ -4,10 +4,7 @@ import { Button, Input } from "@nextui-org/react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
-
-// const domain = import.meta.env.VITE_AUTH0_DOMAIN;
-// const clientId = import.meta.env.VITE_AUTH0_CLIENT_ID;
-// const redirectUri = import.meta.env.VITE_AUTH0_CALLBACK_URL;
+import { signUp } from "../Auth/Ath0-api-calls";
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
 
@@ -42,11 +39,7 @@ function SignUp() {
   });
 
   const onSubmit = async (data: FormFields) => {
-    try {
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
+    await signUp(data.email, data.password);
   };
 
   return (
@@ -76,10 +69,15 @@ function SignUp() {
         </h1>
         <p className="text-[#737373] mb-12">
           {" Let’s get you started sharing your links!"}
+          <span className="block text-xs my-2 text-red-600">
+            Note: Google authentication is currently the only available signup
+            method.
+          </span>
         </p>
         <div className="flex flex-col gap-10">
           <Input
             // div to show errors
+            disabled
             endContent={
               errors.email ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
@@ -111,6 +109,7 @@ function SignUp() {
           />
           <Input
             // div to show errors
+            disabled
             endContent={
               errors.password ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
@@ -142,6 +141,7 @@ function SignUp() {
           />
           <Input
             // div to show errors
+            disabled
             endContent={
               errors.confirmPassword ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">

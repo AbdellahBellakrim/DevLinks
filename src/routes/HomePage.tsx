@@ -19,7 +19,7 @@ function HomePage() {
         </div>
         <h1 className="text-4xl font-semibold text-[#333333]">devLinks</h1>
       </div>
-      <div className="w-full flex justify-center items-center gap-7 overflow-hidden flex-col md:flex-row">
+      <div className="w-full flex justify-center items-center gap-7 overflow-hidden flex-row">
         <Button
           className="dark bg-[#633CFF] rounded-md font-medium"
           onClick={() => navigate("/login")}

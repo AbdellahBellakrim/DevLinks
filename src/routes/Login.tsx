@@ -4,6 +4,7 @@ import { Button, Input } from "@nextui-org/react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { login } from "../Auth/Ath0-api-calls";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,20 +26,9 @@ function Login() {
   });
 
   const onSubmit = async (data: FormFields) => {
-    try {
-      await loginWithRedirect({
-        appState: {
-          returnTo: "/links",
-        },
-        authorizationParams: {
-          screen_hint: "login",
-          connection: "DevLinks",
-          email: data.email,
-          password: data.password,
-        },
-      });
-    } catch (error) {
-      console.error(error);
+    const result = await login(data.email, data.password);
+    if (result?.success) {
+      console.log("Login successful");
     }
   };
 
@@ -67,10 +57,15 @@ function Login() {
         <h1 className="text-3xl font-semibold text-[#333333] mb-4">Login</h1>
         <p className="text-[#737373] mb-12">
           Add your details below to get back into the app
+          <span className="block text-xs my-2 text-red-600">
+            Note: Google authentication is currently the only available login
+            method.
+          </span>
         </p>
         <div className="flex flex-col gap-10">
           <Input
             // div to show errors
+            disabled
             endContent={
               errors.email ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
@@ -107,6 +102,7 @@ function Login() {
             </p>
           </div>
           <Input
+            disabled
             endContent={
               errors.password ? (
                 <div className=" text-[#FF3939] text-center min-w-fit h-fit text-xs">
